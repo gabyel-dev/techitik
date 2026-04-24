@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { logout, verifyTeacherAccess } from "../../../api/auth";
 import { useAuth } from "../../../context/authContext";
+import Loader from "../../../components/loader";
 import {
   PiHouseDuotone,
   PiBooksDuotone,
@@ -21,14 +22,19 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { user, loading: isLoading, setUser } = useAuth();
   const { id } = useParams();
+  const [verifying, setVerifying] = useState(true);
 
   useEffect(() => {
     if (isLoading) return;
     if (!user) { navigate("/", { replace: true }); return; }
-    verifyTeacherAccess(id).catch(() =>
-      navigate("/", { replace: true })
-    );
+    verifyTeacherAccess(id)
+      .then(() => setVerifying(false))
+      .catch(() => navigate("/", { replace: true }));
   }, [isLoading, user, id, navigate]);
+
+  if (isLoading || verifying) {
+    return <Loader />;
+  }
 
   const handleLogout = async () => {
     try {

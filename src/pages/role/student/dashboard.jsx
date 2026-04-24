@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { verifyStudentAccess } from "../../../api/auth";
 import { useAuth } from "../../../context/authContext";
+import Loader from "../../../components/loader";
 import {
   PiBooksDuotone,
   PiMagnifyingGlassDuotone,
@@ -12,14 +13,20 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
   const { user, loading: isLoading } = useAuth();
   const { id } = useParams();
+  const [verifying, setVerifying] = useState(true);
 
   useEffect(() => {
     if (isLoading) return;
     if (!user) { navigate("/", { replace: true }); return; }
-    verifyStudentAccess(id).catch(() =>
-      navigate("/", { replace: true })
-    );
+    verifyStudentAccess(id)
+      .then(() => setVerifying(false))
+      .catch(() => navigate("/", { replace: true }));
   }, [isLoading, user, id, navigate]);
+
+  if (isLoading || verifying) {
+    return <Loader />;
+  }
+
   return (
     <div className="relative flex h-screen w-full bg-slate-50 text-slate-800 font-sans">
       {/* Sidebar */}
