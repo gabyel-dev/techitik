@@ -21,7 +21,7 @@ const App = () => {
         <Route
           path="/dashboard/s/:id"
           element={
-            <ProtectedRoute role="student">
+            <ProtectedRoute>
               <StudentDashboard />
             </ProtectedRoute>
           }
@@ -30,7 +30,7 @@ const App = () => {
         <Route
           path="/dashboard/t/:id"
           element={
-            <ProtectedRoute role="teacher">
+            <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
           }

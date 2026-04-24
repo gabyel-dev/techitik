@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { logout, verifyDashboardAccess } from "../../../api/auth";
+import { logout, verifyTeacherAccess } from "../../../api/auth";
 import { useAuth } from "../../../context/authContext";
 import {
   PiHouseDuotone,
@@ -25,7 +25,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (isLoading) return;
     if (!user) { navigate("/", { replace: true }); return; }
-    verifyDashboardAccess(id).catch(() =>
+    verifyTeacherAccess(id).catch(() =>
       navigate("/", { replace: true })
     );
   }, [isLoading, user, id, navigate]);

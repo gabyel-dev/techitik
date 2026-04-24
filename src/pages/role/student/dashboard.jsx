@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { verifyDashboardAccess } from "../../../api/auth";
+import { verifyStudentAccess } from "../../../api/auth";
 import { useAuth } from "../../../context/authContext";
 import {
   PiBooksDuotone,
@@ -16,7 +16,7 @@ export default function StudentDashboard() {
   useEffect(() => {
     if (isLoading) return;
     if (!user) { navigate("/", { replace: true }); return; }
-    verifyDashboardAccess(id).catch(() =>
+    verifyStudentAccess(id).catch(() =>
       navigate("/", { replace: true })
     );
   }, [isLoading, user, id, navigate]);

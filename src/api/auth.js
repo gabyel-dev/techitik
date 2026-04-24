@@ -20,7 +20,12 @@ export async function logout() {
   return response.data;
 }
 
-export async function verifyDashboardAccess(id) {
-  const response = await api.get(`/dashboard/verify/${id}`);
+export async function verifyTeacherAccess(id) {
+  const response = await api.get(`/dashboard/verify/t/${id}`);
+  return response.data;
+}
+
+export async function verifyStudentAccess(id) {
+  const response = await api.get(`/dashboard/verify/s/${id}`);
   return response.data;
 }
