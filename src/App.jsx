@@ -3,6 +3,7 @@ import Login from "./pages/login.jsx";
 import Dashboard from "./pages/role/teacher/dashboard.jsx";
 import PublicRoute from "./components/publicRoutes.jsx";
 import ProtectedRoute from "./components/protectedRoutes.jsx";
+import StudentDashboard from "./pages/role/student/dashboard.jsx";
 
 const App = () => {
   return (
@@ -18,9 +19,18 @@ const App = () => {
         />
 
         <Route
-          path="/dashboard/:id"
+          path="/dashboard/s/:id"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute role="student">
+              <StudentDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard/t/:id"
+          element={
+            <ProtectedRoute role="teacher">
               <Dashboard />
             </ProtectedRoute>
           }

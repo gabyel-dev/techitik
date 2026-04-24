@@ -19,3 +19,8 @@ export async function logout() {
   const response = await api.post("/auth/logout");
   return response.data;
 }
+
+export async function verifyDashboardAccess(id) {
+  const response = await api.get(`/dashboard/verify/${id}`);
+  return response.data;
+}

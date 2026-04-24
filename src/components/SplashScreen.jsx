@@ -8,8 +8,8 @@ export default function SplashScreen({ onFinish }) {
     const timer = setTimeout(() => {
       setIsFading(true);
       // Wait for the fade transition to complete before unmounting
-      setTimeout(onFinish, 3000);
-    }, 3000);
+      setTimeout(onFinish, 2700);
+    }, 2700);
 
     return () => clearTimeout(timer);
   }, [onFinish]);
@@ -27,18 +27,6 @@ export default function SplashScreen({ onFinish }) {
             src="/app_logo.png"
             alt="TechItik Logo"
             className="h-8 w-auto object-contain"
-          />
-        </div>
-
-        {/* Divider line */}
-        <div className="h-8 w-px rounded-full bg-slate-300"></div>
-
-        {/* School Logo */}
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-xl shadow-slate-200/50 ring-3  ring-slate-50">
-          <img
-            src="/logo.png"
-            alt="Pateros Technological College Logo"
-            className="h-20 w-auto object-contain "
           />
         </div>
       </div>

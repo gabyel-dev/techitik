@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../../../api/auth";
+import { logout, verifyDashboardAccess } from "../../../api/auth";
 import { useAuth } from "../../../context/authContext";
 import {
   PiHouseDuotone,
@@ -23,14 +23,11 @@ export default function Dashboard() {
   const { id } = useParams();
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      navigate("/", { replace: true });
-      return;
-    }
-    // Validate the id param matches the logged-in user
-    if (!isLoading && user && id && String(user.id) !== String(id)) {
-      navigate(`/dashboard/${user.id}`, { replace: true });
-    }
+    if (isLoading) return;
+    if (!user) { navigate("/", { replace: true }); return; }
+    verifyDashboardAccess(id).catch(() =>
+      navigate("/", { replace: true })
+    );
   }, [isLoading, user, id, navigate]);
 
   const handleLogout = async () => {
@@ -126,8 +123,12 @@ export default function Dashboard() {
                     Instructor
                   </span>
                 </div>
-                <div className="h-9 w-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold border border-emerald-200">
-                  {user?.full_name?.charAt(0) || "G"}
+                <div className="h-9 w-9 rounded-full  flex items-center justify-center text-emerald-700 font-bold border border-white p-0.5 ring-2   ring-emerald-500">
+                  <img
+                    src={`https://juexwulmukznvepvtzts.supabase.co/storage/v1/object/public/profiles/${user.google_id}.png`}
+                    alt="Instructors Profile Picture"
+                    className="rounded-full"
+                  />
                 </div>
               </div>
             </div>

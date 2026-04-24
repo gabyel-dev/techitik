@@ -7,16 +7,13 @@ import { googleLogin } from "../api/auth";
 import SplashScreen from "../components/SplashScreen";
 import { useAuth } from "../context/authContext";
 
-const ALLOWED_EMAIL_DOMAIN = "paterostechnologicalcollege.edu.ph";
+const ALLOWED_EMAIL_DOMAIN = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN;
 
 export default function Login() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [error, setError] = useState("");
-  const [showTerms, setShowTerms] = useState(false);
-
-  const APP_VERSION = import.meta.env.VITE_APP_VERSION || "v0.1.0";
 
   const { setUser } = useAuth();
 
@@ -36,11 +33,7 @@ export default function Login() {
         );
       }
 
-      const payload = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        fullName: firebaseUser.displayName,
-      };
+      const payload = firebaseUser;
 
       // Call backend login and get user info
       const loginResult = await googleLogin(payload);
@@ -50,7 +43,11 @@ export default function Login() {
 
       setUser(loggedInUser);
 
-      navigate(`/dashboard/${loggedInUser.id}`, { replace: true });
+      if (loggedInUser.role === "teacher") {
+        navigate(`/dashboard/t/${loggedInUser.id}`, { replace: true });
+      } else {
+        navigate(`/dashboard/s/${loggedInUser.id}`, { replace: true });
+      }
     } catch (err) {
       setError(err?.message);
       setTimeout(() => setError(""), 6000);
@@ -76,7 +73,7 @@ export default function Login() {
         </div>
 
         <div className="w-full h-screen absolute flex items-center justify-center">
-          <span className="bg-white/70 opacity-60 z-1 blur-3xl rounded-full w-100 h-100 inset-1  "></span>
+          <span className="bg-emerald-500/70 opacity-60 z-1 blur-3xl rounded-full w-100 h-130 inset-1  "></span>
         </div>
         <div className="relative z-10 w-full max-w-md">
           <section className="overflow-hidden md:rounded-4xl md:border  md:border-slate-200/60 md:bg-white/80 px-0 py-8 md:px-8 md:py-8 md:shadow-2xl md:shadow-slate-200/50 md:backdrop-blur-xl sm:p-10">
@@ -113,12 +110,12 @@ export default function Login() {
                   TechItik
                 </span>
               </h1>
-              <p className="text-sm text-slate-950 md:text-slate-500">
+              <p className="text-sm text-slate-200 md:text-slate-500">
                 Pateros Technological College Quiz Portal
               </p>
             </header>
 
-            <div className="mb-8 rounded-2xl md:bg-slate-50 bg-white/40 px-4 py-3.5 text-center text-xs font-medium text-slate-600 md:ring-1 md:ring-inset border border-dashed md:ring-slate-200/60">
+            <div className="mb-8 rounded-2xl md:bg-slate-50 bg-white/40 px-4 py-3.5 text-center text-xs font-medium text-slate-600 md:ring-1 md:ring-inset  md:ring-slate-200/60">
               Please use your{" "}
               <span className="font-semibold text-slate-900">
                 @{ALLOWED_EMAIL_DOMAIN}
@@ -143,48 +140,18 @@ export default function Login() {
                 {error}
               </div>
             ) : null}
-
-            {/* Footer: version + terms */}
-
-            {/* Terms modal */}
-            {showTerms && (
-              <div className="absolute inset-0 z-50 flex items-center justify-center ">
-                <div className=" w-xs rounded-xl bg-white p-6 ">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">
-                      Terms & Conditions
-                    </h3>
-                    <button
-                      onClick={() => setShowTerms(false)}
-                      className="text-slate-500 hover:text-slate-700"
-                    >
-                      Close
-                    </button>
-                  </div>
-                  <div className="prose max-w-none text-sm text-slate-700">
-                    <p>
-                      By using this service you agree to the policies of Pateros
-                      Technological College.
-                    </p>
-                    <p className="mt-4 text-xs text-slate-400">
-                      Last updated: 2026-04-21
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
           </section>
-          <div className="mt-6 flex items-center justify-center gap-3 text-xs text-slate-300">
-            <div>Version {APP_VERSION}</div>
-            <span className="h-4 inset-1 w-[0.3px] rounded-full bg-emerald-400/70"></span>
-            <button
-              type="button"
-              onClick={() => setShowTerms(true)}
-              className="text-slate-300 hover:underline"
-            >
-              Terms & Conditions
-            </button>
-          </div>
+          <section className="flex items-center w-full justify-center text-slate-300/80">
+            <div className="mt-6 flex items-center justify-center gap-3 text-xs ">
+              <p>Version 0.1.0</p>
+              <span className="h-4 inset-1 w-[0.3px] rounded-full bg-emerald-400/70"></span>
+            </div>
+            <div className="mt-6 flex items-center justify-center pl-3 text-xs ">
+              <p className="hover:underline cursor-pointer">
+                Terms and Condition
+              </p>
+            </div>
+          </section>
         </div>
       </main>
     </>

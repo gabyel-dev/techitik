@@ -7,11 +7,20 @@ export default function PublicRoute({ children }) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    <SplashScreen />;
+    return <SplashScreen />;
   }
 
   if (user) {
-    return <Navigate to={`/dashboard/${user.id}`} replace={true} />;
+    return (
+      <Navigate
+        to={
+          user.role === "teacher"
+            ? `/dashboard/t/${user.id}`
+            : `/dashboard/s/${user.id}`
+        }
+        replace={true}
+      />
+    );
   }
 
   return children;
