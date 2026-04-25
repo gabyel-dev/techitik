@@ -5,6 +5,7 @@ import { googleLogin } from "../api/auth";
 import SplashScreen from "../components/SplashScreen";
 import { useAuth } from "../context/authContext";
 import { api } from "../api/api";
+import axios from "axios";
 
 const ALLOWED_EMAIL_DOMAIN = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN;
 
@@ -21,10 +22,12 @@ export default function Login() {
 
       try {
         setIsLoading(true);
-        const userInfoResponse = await api.get(
+        const userInfoResponse = await axios.get(
           "https://www.googleapis.com/oauth2/v3/userinfo",
           {
             headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+            withCredentials: false,
+            timeout: 10000,
           },
         );
 
