@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/:path*",
-      "destination": "https://techitik-server.onrender.com*"
+      "destination": "https://techitik-server.onrender.com/:path*"
     },
 
     {
