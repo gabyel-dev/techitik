@@ -51,7 +51,8 @@ export default function Login() {
 
         setUser(loggedInUser);
       } catch (err) {
-        setError(err?.message || "Login failed");
+        setIsLoading(false);
+        setError(err?.message);
         setTimeout(() => setError(""), 6000);
         console.error("Google login error", err);
       } finally {
