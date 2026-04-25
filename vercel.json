@@ -1,10 +1,13 @@
 {
   "rewrites": [
     {
-      "source": "/:path*",
-      "destination": "https://techitik-server.onrender.com/:path*"
+      "source": "/auth/:path*",
+      "destination": "https://techitik-server.onrender.com/auth/:path*"
     },
-
+    {
+      "source": "/dashboard/verify/:path*",
+      "destination": "https://techitik-server.onrender.com/dashboard/verify/:path*"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
