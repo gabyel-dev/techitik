@@ -1,59 +1,74 @@
 import { useState } from "react";
-import { signInWithPopup, signOut } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { useGoogleLogin } from "@react-oauth/google";
 import { FcGoogle } from "react-icons/fc";
-import { auth, googleProvider } from "../config/firebase";
 import { googleLogin } from "../api/auth";
 import SplashScreen from "../components/SplashScreen";
 import { useAuth } from "../context/authContext";
+import { api } from "../api/api";
 
 const ALLOWED_EMAIL_DOMAIN = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN;
 
 export default function Login() {
-  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [error, setError] = useState("");
 
   const { setUser } = useAuth();
 
-  const loginWithGoogle = async () => {
-    setError("");
-    setIsLoading(true);
+  const login = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setError("");
 
-    try {
-      const firebaseResult = await signInWithPopup(auth, googleProvider);
-      const firebaseUser = firebaseResult.user;
-      const normalizedEmail = firebaseUser?.email?.trim().toLowerCase();
-
-      if (!normalizedEmail?.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`)) {
-        await signOut(auth);
-        throw new Error(
-          `Only ${ALLOWED_EMAIL_DOMAIN} email accounts are accepted.`,
+      try {
+        setIsLoading(true);
+        const userInfoResponse = await api.get(
+          "https://www.googleapis.com/oauth2/v3/userinfo",
+          {
+            headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+          },
         );
+
+        const googleUser = userInfoResponse.data;
+        const normalizedEmail = googleUser?.email?.trim().toLowerCase();
+        console.log(googleUser);
+
+        if (!normalizedEmail?.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`)) {
+          throw new Error(
+            `Only ${ALLOWED_EMAIL_DOMAIN} email accounts are accepted.`,
+          );
+        }
+
+        const payload = {
+          uid: googleUser.sub,
+          email: googleUser.email,
+          displayName: googleUser.name,
+          photoURL: googleUser.picture,
+          emailVerified: googleUser.email_verified,
+        };
+
+        const loginResult = await googleLogin(payload);
+        const loggedInUser = loginResult?.user;
+
+        setUser(loggedInUser);
+      } catch (err) {
+        setError(err?.message || "Login failed");
+        setTimeout(() => setError(""), 6000);
+        console.error("Google login error", err);
+      } finally {
+        setIsLoading(false);
       }
-
-      const payload = firebaseUser;
-
-      // Call backend login and get user info
-      const loginResult = await googleLogin(payload);
-      const loggedInUser = loginResult?.user;
-
-      setUser(loggedInUser);
-
-      /* if (loggedInUser.role === "teacher") {
-        navigate(`/dashboard/t/${loggedInUser.id}`, { replace: true });
-      } else {
-        navigate(`/dashboard/s/${loggedInUser.id}`, { replace: true });
-      } */
-    } catch (err) {
-      setError(err?.message);
+    },
+    onError: () => {
+      setError("Google login failed");
       setTimeout(() => setError(""), 6000);
-
-      console.error("Google login error", err);
-    } finally {
       setIsLoading(false);
-    }
+    },
+    hosted_domain: ALLOWED_EMAIL_DOMAIN,
+  });
+
+  const handleLogin = () => {
+    setIsLoading(true);
+    login();
   };
 
   return (
@@ -123,7 +138,7 @@ export default function Login() {
 
             <button
               type="button"
-              onClick={loginWithGoogle}
+              onClick={() => handleLogin()}
               disabled={isLoading}
               className="group relative flex w-full items-center justify-center gap-3 rounded-2xl bg-slate-900 px-4 py-3.5 text-sm font-semibold text-white transition-all hover:bg-slate-800 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
             >
