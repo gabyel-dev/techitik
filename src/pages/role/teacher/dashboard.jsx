@@ -26,7 +26,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (isLoading) return;
-    if (!user) { navigate("/", { replace: true }); return; }
+    if (!user) {
+      navigate("/", { replace: true });
+      return;
+    }
     verifyTeacherAccess(id)
       .then(() => setVerifying(false))
       .catch(() => navigate("/", { replace: true }));
@@ -49,7 +52,7 @@ export default function Dashboard() {
     <>
       <div className="relative flex h-screen w-full bg-slate-50 text-slate-800 font-sans">
         {/* Sidebar */}
-        <aside className="w-64 border-r border-slate-200 bg-white flex flex-col">
+        <aside className="w-64 border-r border-slate-200 bg-white flex flex-col hidden md:block">
           <div className="flex h-16 items-center px-6 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-white">

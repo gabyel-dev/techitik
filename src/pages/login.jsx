@@ -4,7 +4,6 @@ import { FcGoogle } from "react-icons/fc";
 import { googleLogin } from "../api/auth";
 import SplashScreen from "../components/SplashScreen";
 import { useAuth } from "../context/authContext";
-import { api } from "../api/api";
 import axios from "axios";
 
 const ALLOWED_EMAIL_DOMAIN = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN;
