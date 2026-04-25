@@ -1,0 +1,13 @@
+{
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "destination": "https://techitik-server.onrender.com*"
+    },
+
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
