@@ -17,7 +17,10 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     if (isLoading) return;
-    if (!user) { navigate("/", { replace: true }); return; }
+    if (!user) {
+      navigate("/", { replace: true });
+      return;
+    }
     verifyStudentAccess(id)
       .then(() => setVerifying(false))
       .catch(() => navigate("/", { replace: true }));
@@ -30,7 +33,7 @@ export default function StudentDashboard() {
   return (
     <div className="relative flex h-screen w-full bg-slate-50 text-slate-800 font-sans">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-slate-200 bg-white flex flex-col">
+      <aside className="w-64 border-r border-slate-200 bg-white  flex-col hidden md:block">
         <div className="flex h-16 items-center px-6 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-white">
@@ -72,12 +75,16 @@ export default function StudentDashboard() {
             <div className="flex items-center gap-3 cursor-pointer">
               <div className="flex flex-col items-end">
                 <span className="text-sm font-semibold text-slate-900 leading-none">
-                  Student Name
+                  {user?.full_name}
                 </span>
                 <span className="text-xs text-slate-500 mt-1">Student</span>
               </div>
-              <div className="h-9 w-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold border border-emerald-200">
-                S
+              <div className="h-9 w-9 rounded-full  flex items-center justify-center text-emerald-700 font-bold border border-white p-0.5 ring-2   ring-emerald-500">
+                <img
+                  src={`https://juexwulmukznvepvtzts.supabase.co/storage/v1/object/public/profiles/${user.google_id}.png`}
+                  alt="Instructors Profile Picture"
+                  className="rounded-full"
+                />
               </div>
             </div>
           </div>
