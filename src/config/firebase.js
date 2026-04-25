@@ -7,13 +7,14 @@ import { getAuth, GoogleAuthProvider } from "firebase/auth";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_APIKEY,
+  apiKey: "AIzaSyCRKQdUsGU4tz5Vd59mhzz_6VLkX4F6kVI",
   authDomain: "techitik.firebaseapp.com",
+  databaseURL: "https://techitik-default-rtdb.firebaseio.com",
   projectId: "techitik",
   storageBucket: "techitik.firebasestorage.app",
   messagingSenderId: "849407356541",
-  appId: "1:849407356541:web:b36cf2f17256969dba4b14",
-  measurementId: "G-N22P3YB51C",
+  appId: "1:849407356541:web:7cfca78a7f083740ba4b14",
+  measurementId: "G-32N8JH7V88",
 };
 
 // Initialize Firebase

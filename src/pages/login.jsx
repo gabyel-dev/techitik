@@ -38,16 +38,14 @@ export default function Login() {
       // Call backend login and get user info
       const loginResult = await googleLogin(payload);
       const loggedInUser = loginResult?.user;
-      if (!loggedInUser?.id)
-        throw new Error("Login failed: No user ID returned");
 
       setUser(loggedInUser);
 
-      if (loggedInUser.role === "teacher") {
+      /* if (loggedInUser.role === "teacher") {
         navigate(`/dashboard/t/${loggedInUser.id}`, { replace: true });
       } else {
         navigate(`/dashboard/s/${loggedInUser.id}`, { replace: true });
-      }
+      } */
     } catch (err) {
       setError(err?.message);
       setTimeout(() => setError(""), 6000);
