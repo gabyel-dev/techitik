@@ -5,6 +5,10 @@
       "destination": "https://techitik-server.onrender.com/auth/:path*"
     },
     {
+      "source": "/room/:path*",
+      "destination": "https://techitik-server.onrender.com/room/:path*"
+    },
+    {
       "source": "/dashboard/verify/:path*",
       "destination": "https://techitik-server.onrender.com/dashboard/verify/:path*"
     },
