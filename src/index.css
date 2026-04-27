@@ -191,3 +191,8 @@ body {
     left: 115%;
   }
 }
+
+/* username - title case */
+.username::first-line {
+  text-transform: capitalize;
+}

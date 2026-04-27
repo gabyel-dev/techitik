@@ -1,19 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { verifyStudentAccess } from "../../../api/auth";
+import { logout, verifyStudentAccess } from "../../../api/auth";
+import { JoinRoom } from "../../../api/rooms";
 import { useAuth } from "../../../context/authContext";
 import Loader from "../../../components/loader";
 import {
   PiBooksDuotone,
   PiMagnifyingGlassDuotone,
   PiBellDuotone,
+  PiSignOut,
+  PiSignOutDuotone,
 } from "react-icons/pi";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
-  const { user, loading: isLoading } = useAuth();
+  const { user, loading: isLoading, setUser } = useAuth();
   const { id } = useParams();
   const [verifying, setVerifying] = useState(true);
+  const [roomCode, setRoomCode] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (isLoading) return;
@@ -25,6 +31,36 @@ export default function StudentDashboard() {
       .then(() => setVerifying(false))
       .catch(() => navigate("/", { replace: true }));
   }, [isLoading, user, id, navigate]);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setUser(null);
+    } finally {
+      navigate("/", { replace: true });
+    }
+  };
+
+  const handleJoinRoom = async () => {
+    if (!roomCode.trim()) {
+      setError("Please enter a room code");
+      setTimeout(() => setError(""), 3000);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      await JoinRoom({ room_code: roomCode });
+      setRoomCode("");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to join room");
+      setTimeout(() => setError(""), 6000);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (isLoading || verifying) {
     return <Loader />;
@@ -53,6 +89,15 @@ export default function StudentDashboard() {
             Dashboard
           </button>
         </nav>
+        <div className="border-t border-slate-100 p-4">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-rose-600 transition-colors"
+          >
+            <PiSignOutDuotone size={18} className="text-slate-400" />
+            Logout
+          </button>
+        </div>
       </aside>
       {/* Main Content */}
       <main className="flex flex-1 flex-col overflow-hidden items-center justify-center">
@@ -74,10 +119,12 @@ export default function StudentDashboard() {
             <div className="h-6 w-px bg-slate-200"></div>
             <div className="flex items-center gap-3 cursor-pointer">
               <div className="flex flex-col items-end">
-                <span className="text-sm font-semibold text-slate-900 leading-none">
-                  {user?.full_name}
+                <p className="username text-sm font-semibold text-slate-900 leading-none">
+                  {user?.full_name.toLowerCase()}
+                </p>
+                <span className="text-xs  first-letter:uppercase text-slate-500 mt-1">
+                  {user?.role}
                 </span>
-                <span className="text-xs text-slate-500 mt-1">Student</span>
               </div>
               <div className="h-9 w-9 rounded-full  flex items-center justify-center text-emerald-700 font-bold border border-white p-0.5 ring-2   ring-emerald-500">
                 <img
@@ -92,24 +139,32 @@ export default function StudentDashboard() {
         {/* Centered Enter Class Code */}
         <div className="flex flex-1 w-full items-center justify-center">
           <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-10 flex flex-col items-center w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4 text-slate-900">
+            <h2 className="text-xl font-bold mb-2 text-slate-900">
               Enter Class Code
             </h2>
+            <p className="text-sm text-slate-500 mb-6 text-center">
+              Ask your teacher for the room code to join the class
+            </p>
+            {error && (
+              <div className="w-full bg-rose-100 text-rose-700 px-4 py-2 rounded-lg mb-4 text-sm">
+                {error}
+              </div>
+            )}
             <input
               type="text"
               placeholder="e.g. ABC123"
-              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 outline-none text-lg mb-6"
-              disabled
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+              className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none text-lg mb-6 text-center font-mono tracking-wider"
+              maxLength={8}
             />
             <button
-              className="w-full rounded-lg bg-emerald-500 px-4 py-3 text-white font-semibold text-base shadow hover:bg-emerald-600 transition-colors"
-              disabled
+              onClick={handleJoinRoom}
+              disabled={loading || !roomCode.trim()}
+              className="w-full rounded-lg bg-emerald-500 px-4 py-3 text-white font-semibold text-base shadow hover:bg-emerald-600 transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed"
             >
-              Join Class
+              {loading ? "Joining..." : "Join Class"}
             </button>
-            <p className="mt-4 text-xs text-slate-400">
-              (UI only, no functionality)
-            </p>
           </div>
         </div>
       </main>

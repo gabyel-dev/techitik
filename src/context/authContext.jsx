@@ -12,14 +12,11 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const auth = async () => {
       try {
+        await refreshSession();
         const response = await getSession();
         setUser(response.user);
       } catch {
-        try {
-          await refreshSession();
-        } catch {
-          setUser(null);
-        }
+        setUser(null);
       } finally {
         setLoading(false);
       }

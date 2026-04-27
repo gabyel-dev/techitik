@@ -17,9 +17,11 @@ import {
   PiClockDuotone,
 } from "react-icons/pi";
 import { useParams } from "react-router-dom";
+import { CreateRoomModal } from "../../../components/Modal/CreateRoomModal";
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const { user, loading: isLoading, setUser } = useAuth();
   const { id } = useParams();
   const [verifying, setVerifying] = useState(true);
@@ -125,11 +127,11 @@ export default function Dashboard() {
               <div className="h-6 w-px bg-slate-200"></div>
               <div className="flex items-center gap-3 cursor-pointer">
                 <div className="flex flex-col items-end">
-                  <span className="text-sm font-semibold text-slate-900 leading-none">
+                  <p className="username text-sm font-semibold text-slate-900 leading-none">
                     {user?.full_name}
-                  </span>
-                  <span className="text-xs text-slate-500 mt-1">
-                    Instructor
+                  </p>
+                  <span className="text-xs  first-letter:uppercase text-slate-500 mt-1">
+                    {user?.role}
                   </span>
                 </div>
                 <div className="h-9 w-9 rounded-full  flex items-center justify-center text-emerald-700 font-bold border border-white p-0.5 ring-2   ring-emerald-500">
@@ -154,9 +156,15 @@ export default function Dashboard() {
                   Here's what's happening with your classes today.
                 </p>
               </div>
-              <button className="flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-600 transition-colors">
+              {isModalVisible && (
+                <CreateRoomModal onClose={() => setIsModalVisible(false)} />
+              )}
+              <button
+                onClick={() => setIsModalVisible(true)}
+                className="flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-600 transition-colors"
+              >
                 <PiPlusDuotone size={16} />
-                Create Quiz
+                Create Room
               </button>
             </div>
 
