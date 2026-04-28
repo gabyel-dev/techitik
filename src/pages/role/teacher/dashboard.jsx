@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
-import { logout, verifyTeacherAccess } from "../../../api/auth";
+
+import { verifyTeacherAccess } from "../../../api/auth";
+
 import { useAuth } from "../../../context/authContext";
+
 import Loader from "../../../components/loader";
+
 import {
   PiHouseDuotone,
   PiBooksDuotone,
@@ -16,13 +21,19 @@ import {
   PiTrophyDuotone,
   PiClockDuotone,
 } from "react-icons/pi";
+
 import { useParams } from "react-router-dom";
+
 import { CreateRoomModal } from "../../../components/Modal/CreateRoomModal";
+
+import { GetRoomLists } from "../../../components/TeacherDashboard/RoomLists";
+
+import Sidebar from "../../../components/Sidebar";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const { user, loading: isLoading, setUser } = useAuth();
+  const { user, loading: isLoading } = useAuth();
   const { id } = useParams();
   const [verifying, setVerifying] = useState(true);
 
@@ -35,342 +46,197 @@ export default function Dashboard() {
     verifyTeacherAccess(id)
       .then(() => setVerifying(false))
       .catch(() => navigate("/", { replace: true }));
-  }, [isLoading, user, id, navigate]);
+  }, [isLoading, user, id]);
 
-  if (isLoading || verifying) {
-    return <Loader />;
-  }
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      setUser(null);
-    } finally {
-      navigate("/", { replace: true });
-    }
-  };
+  if (isLoading || verifying) return <Loader />;
 
   return (
-    <>
-      <div className="relative flex h-screen w-full bg-slate-50 text-slate-800 font-sans">
-        {/* Sidebar */}
-        <aside className="w-64 border-r border-slate-200 bg-white flex flex-col hidden md:block">
-          <div className="flex h-16 items-center px-6 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500 text-white">
-                <PiBooksDuotone size={20} />
-              </div>
-              <span className="text-sm font-bold tracking-wide text-slate-900">
-                TechItik
-              </span>
-            </div>
+    <div className="flex h-screen w-full bg-[#f8fafc] text-slate-900 ">
+      <Sidebar />
+
+      <main className="flex flex-1 flex-col overflow-hidden">
+        {/* Topbar: Added blur and refined borders */}
+        <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b border-slate-200/60 bg-white/80 px-10 backdrop-blur-md">
+          <div className="relative w-full max-w-md group">
+            <PiMagnifyingGlassDuotone
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors"
+              size={20}
+            />
+            <input
+              type="text"
+              placeholder="Search anything..."
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2.5 pl-11 pr-4 text-sm outline-none transition-all focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+            />
           </div>
 
-          <nav className="flex-1 space-y-1 p-4">
-            <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-3 px-3">
-              Menu
-            </div>
-            <button className="flex w-full items-center gap-3 rounded-lg bg-emerald-50 px-3 py-2.5 text-sm font-medium text-emerald-700 transition-colors">
-              <PiHouseDuotone size={18} className="text-emerald-500" />
-              Dashboard
+          <div className="flex items-center gap-5">
+            <button className="group relative flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 hover:border-emerald-200 hover:text-emerald-600 transition-all">
+              <PiBellDuotone size={22} />
+              <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-white"></span>
             </button>
-            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-              <PiBooksDuotone size={18} className="text-slate-400" />
-              Quizzes
-            </button>
-            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-              <PiUsersDuotone size={18} className="text-slate-400" />
-              Students
-            </button>
-            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-              <PiChartLineUpDuotone size={18} className="text-slate-400" />
-              Results
-            </button>
-
-            <div className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mt-8 mb-3 px-3">
-              System
-            </div>
-            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors">
-              <PiGearDuotone size={18} className="text-slate-400" />
-              Settings
-            </button>
-          </nav>
-
-          <div className="border-t border-slate-100 p-4">
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-rose-600 transition-colors"
-            >
-              <PiSignOutDuotone size={18} className="text-slate-400" />
-              Logout
-            </button>
-          </div>
-        </aside>
-        {/* Main Content Area */}
-        <main className="flex flex-1 flex-col overflow-hidden">
-          {/* Topbar */}
-          <header className="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-8">
-            <div className="flex items-center w-full max-w-md gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 focus-within:border-emerald-500 focus-within:bg-white focus-within:ring-1 focus-within:ring-emerald-500">
-              <PiMagnifyingGlassDuotone className="text-slate-400" size={18} />
-              <input
-                type="text"
-                placeholder="Search quizzes, students or reports..."
-                className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
-              />
-            </div>
-
-            <div className="flex items-center gap-6">
-              <button className="relative text-slate-400 hover:text-slate-600">
-                <PiBellDuotone size={22} />
-                <span className="absolute right-0 top-0 h-2 w-2 rounded-full border-2 border-white bg-emerald-500"></span>
-              </button>
-              <div className="h-6 w-px bg-slate-200"></div>
-              <div className="flex items-center gap-3 cursor-pointer">
-                <div className="flex flex-col items-end">
-                  <p className="username text-sm font-semibold text-slate-900 leading-none">
-                    {user?.full_name}
-                  </p>
-                  <span className="text-xs  first-letter:uppercase text-slate-500 mt-1">
-                    {user?.role}
-                  </span>
-                </div>
-                <div className="h-9 w-9 rounded-full  flex items-center justify-center text-emerald-700 font-bold border border-white p-0.5 ring-2   ring-emerald-500">
-                  <img
-                    src={`https://juexwulmukznvepvtzts.supabase.co/storage/v1/object/public/profiles/${user.google_id}.png`}
-                    alt="Instructors Profile Picture"
-                    className="rounded-full"
-                  />
-                </div>
-              </div>
-            </div>
-          </header>
-
-          {/* Dashboard Content */}
-          <div className="flex-1 overflow-y-auto p-8">
-            <div className="flex items-end justify-between mb-8">
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-                  Overview
-                </h1>
-                <p className="mt-1 text-sm text-slate-500">
-                  Here's what's happening with your classes today.
+            <div className="h-8 w-px bg-slate-200"></div>
+            <div className="flex items-center gap-4 group cursor-pointer">
+              <div className="text-right">
+                <p className="text-sm font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
+                  {user?.full_name}
+                </p>
+                <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400">
+                  {user?.role}
                 </p>
               </div>
-              {isModalVisible && (
-                <CreateRoomModal onClose={() => setIsModalVisible(false)} />
-              )}
-              <button
-                onClick={() => setIsModalVisible(true)}
-                className="flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-600 transition-colors"
-              >
-                <PiPlusDuotone size={16} />
-                Create Room
-              </button>
-            </div>
-
-            {/* Stats Overview */}
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 mb-8">
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                    <PiBooksDuotone size={20} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-slate-500">
-                      Total Quizzes
-                    </p>
-                    <p className="text-2xl font-bold text-slate-900">24</p>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                    <PiUsersDuotone size={20} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-slate-500">
-                      Active Students
-                    </p>
-                    <p className="text-2xl font-bold text-slate-900">142</p>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
-                    <PiChartLineUpDuotone size={20} />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-slate-500">
-                      Average Class Score
-                    </p>
-                    <p className="text-2xl font-bold text-slate-900">86%</p>
-                  </div>
-                </div>
+              <div className="relative h-11 w-11 overflow-hidden rounded-xl border-2 border-emerald-500/20 p-0.5 group-hover:border-emerald-500 transition-all">
+                <img
+                  src={`https://juexwulmukznvepvtzts.supabase.co/storage/v1/object/public/profiles/${user.google_id}.png`}
+                  alt="Profile"
+                  className="h-full w-full rounded-[10px] object-cover"
+                />
               </div>
             </div>
+          </div>
+        </header>
 
-            {/* Main Grid area */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Dashboard Content */}
+        <div className="flex-1 overflow-y-auto p-10">
+          <div className="mb-10 flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-[var(--font-heading)] font-bold tracking-tight text-slate-900">
+                Teacher Dashboard
+              </h1>
+              <p className="mt-1 font-[var(--font-body)] text-slate-500">
+                Welcome back! Manage your classrooms and track quiz performance.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsModalVisible(true)}
+              className="flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/20 hover:bg-emerald-600 hover:shadow-emerald-500/20 transition-all active:scale-95"
+            >
+              <PiPlusDuotone size={18} />
+              New Classroom
+            </button>
+          </div>
+
+          <div className="grid grid-cols-12 gap-8">
+            {/* Left Column: Stats & Table */}
+            <div className="col-span-12 lg:col-span-8 space-y-8">
+              {/* Stats Overview */}
+              <div className="grid grid-cols-2 gap-6">
+                {[
+                  {
+                    label: "Total Quizzes",
+                    val: "24",
+                    icon: PiBooksDuotone,
+                    color: "blue",
+                  },
+                  {
+                    label: "Active Students",
+                    val: "142",
+                    icon: PiUsersDuotone,
+                    color: "emerald",
+                  },
+                ].map((stat, i) => (
+                  <div
+                    key={i}
+                    className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-all"
+                  >
+                    <div className="flex items-center gap-5">
+                      <div
+                        className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-${stat.color}-50 text-${stat.color}-600 group-hover:scale-110 transition-transform`}
+                      >
+                        <stat.icon size={28} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-slate-500">
+                          {stat.label}
+                        </p>
+                        <p className="text-3xl font-black text-slate-900">
+                          {stat.val}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {/* Table Section */}
-              <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden flex flex-col">
-                <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between">
-                  <h2 className="text-sm font-semibold text-slate-900">
-                    Recent Quizzes
-                  </h2>
-                  <button className="text-xs font-medium text-emerald-600 hover:text-emerald-700">
-                    View All
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex items-center justify-between border-b border-slate-100 px-8 py-5">
+                  <h2 className="font-bold text-slate-900">Recent Activity</h2>
+                  <button className="text-xs font-bold text-emerald-600 hover:underline">
+                    View All Quizzes
                   </button>
                 </div>
-                <div className="flex-1 overflow-x-auto">
-                  <table className="w-full min-w-125">
-                    <thead>
-                      <tr className="border-b border-slate-100 bg-slate-50/50 text-left text-xs font-medium text-slate-500">
-                        <th className="px-6 py-3">Quiz Name</th>
-                        <th className="px-6 py-3">Subject</th>
-                        <th className="px-6 py-3">Participants</th>
-                        <th className="px-6 py-3">Status</th>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50/50 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      <tr>
+                        <th className="px-8 py-4">Quiz Name</th>
+                        <th className="px-8 py-4">Subject</th>
+                        <th className="px-8 py-4">Participants</th>
+                        <th className="px-8 py-4">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-sm">
-                      <tr>
-                        <td className="px-6 py-4 font-medium text-slate-900">
-                          Midterm: React Fundamentals
-                        </td>
-                        <td className="px-6 py-4 text-slate-500">
-                          Web Dev 101
-                        </td>
-                        <td className="px-6 py-4 text-slate-500">45 / 50</td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                            Active
-                          </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 font-medium text-slate-900">
-                          Variables & Data Types
-                        </td>
-                        <td className="px-6 py-4 text-slate-500">
-                          Intro to JS
-                        </td>
-                        <td className="px-6 py-4 text-slate-500">38 / 38</td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex rounded-full border border-slate-200 bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
-                            Completed
-                          </span>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-6 py-4 font-medium text-slate-900">
-                          CSS Grid Layouts
-                        </td>
-                        <td className="px-6 py-4 text-slate-500">
-                          Web UI Design
-                        </td>
-                        <td className="px-6 py-4 text-slate-500">0 / 60</td>
-                        <td className="px-6 py-4">
-                          <span className="inline-flex rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
-                            Draft
-                          </span>
-                        </td>
-                      </tr>
+                      {[
+                        {
+                          name: "Midterm: React Fundamentals",
+                          sub: "Web Dev 101",
+                          p: "45/50",
+                          status: "Active",
+                        },
+                        {
+                          name: "Variables & Data Types",
+                          sub: "Intro to JS",
+                          p: "38/38",
+                          status: "Completed",
+                        },
+                      ].map((row, i) => (
+                        <tr
+                          key={i}
+                          className="hover:bg-slate-50/50 transition-colors"
+                        >
+                          <td className="px-8 py-5 font-semibold text-slate-900">
+                            {row.name}
+                          </td>
+                          <td className="px-8 py-5 text-slate-500">
+                            {row.sub}
+                          </td>
+                          <td className="px-8 py-5 text-slate-500">{row.p}</td>
+                          <td className="px-8 py-5">
+                            <span
+                              className={`inline-flex rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase ${
+                                row.status === "Active"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-slate-100 text-slate-600"
+                              }`}
+                            >
+                              {row.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
               </div>
+            </div>
 
-              {/* Side Column (Activity / Leaderboard preview) */}
-              <div className="flex flex-col gap-6">
-                {/* Leaderboard Preview */}
-                <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-sm font-semibold text-slate-900">
-                      Top Performers
-                    </h2>
-                    <PiTrophyDuotone className="text-yellow-500" size={18} />
-                  </div>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold text-slate-600">
-                          AM
-                        </div>
-                        <span className="font-medium text-slate-900">
-                          Alex Morgan
-                        </span>
-                      </div>
-                      <span className="font-bold text-slate-900">98%</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold text-slate-600">
-                          JS
-                        </div>
-                        <span className="font-medium text-slate-900">
-                          Jordan Smith
-                        </span>
-                      </div>
-                      <span className="font-bold text-slate-900">95%</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-semibold text-slate-600">
-                          RD
-                        </div>
-                        <span className="font-medium text-slate-900">
-                          Riley Davis
-                        </span>
-                      </div>
-                      <span className="font-bold text-slate-900">92%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Activity */}
-                <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-sm font-semibold text-slate-900">
-                      Recent Activity
-                    </h2>
-                    <PiClockDuotone className="text-slate-400" size={18} />
-                  </div>
-                  <div className="space-y-4 relative before:absolute before:inset-0 before:ml-2.75 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-slate-100 ml-2">
-                    <div className="relative flex items-center gap-4">
-                      <div className="absolute -left-0.75 top-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-blue-500 h-2.5 w-2.5"></div>
-                      <div className="ml-6 text-xs text-slate-500">
-                        <span className="font-semibold text-slate-900">
-                          Web Dev 101
-                        </span>{" "}
-                        room was updated.
-                        <br />
-                        <span className="text-[10px] text-slate-400">
-                          2 mins ago
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="relative flex items-center gap-4">
-                      <div className="absolute -left-0.75 top-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-emerald-500 h-2.5 w-2.5"></div>
-                      <div className="ml-6 text-xs text-slate-500">
-                        <span className="font-semibold text-slate-900">
-                          Midterm: React
-                        </span>{" "}
-                        was published.
-                        <br />
-                        <span className="text-[10px] text-slate-400">
-                          1 hour ago
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            {/* Right Column: Rooms List */}
+            <div className="col-span-12 lg:col-span-4">
+              <div className="sticky top-10">
+                <h2 className="mb-4 flex items-center gap-2 font-bold text-slate-900">
+                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
+                  Your Classrooms
+                </h2>
+                <GetRoomLists />
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    </>
+        </div>
+      </main>
+
+      {isModalVisible && (
+        <CreateRoomModal onClose={() => setIsModalVisible(false)} />
+      )}
+    </div>
   );
 }

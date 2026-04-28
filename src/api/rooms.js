@@ -9,3 +9,8 @@ export const JoinRoom = async (payload) => {
   const response = await api.post("/room/join", payload);
   return response.data;
 };
+
+export const GetRooms = async () => {
+  const response = await api.get("/room/room_lists");
+  return response.data;
+};

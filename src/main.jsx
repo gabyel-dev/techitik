@@ -3,6 +3,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./index.css";
 import App from "./App.jsx";
 import { AuthProvider } from "./context/authContext.jsx";
+import { Toaster } from "react-hot-toast";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -11,5 +12,9 @@ createRoot(document.getElementById("root")).render(
     <AuthProvider>
       <App />
     </AuthProvider>
-  </GoogleOAuthProvider>
+    <Toaster
+      position="top-center"
+      toastOptions={{ duration: 4000, removeDelay: 1000 }}
+    />
+  </GoogleOAuthProvider>,
 );

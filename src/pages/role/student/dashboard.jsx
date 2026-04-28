@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { logout, verifyStudentAccess } from "../../../api/auth";
 import { JoinRoom } from "../../../api/rooms";
@@ -20,28 +20,34 @@ export default function StudentDashboard() {
   const [roomCode, setRoomCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const hasVerified = useRef(false);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || hasVerified.current) return;
     if (!user) {
       navigate("/", { replace: true });
       return;
     }
+    hasVerified.current = true;
     verifyStudentAccess(id)
       .then(() => setVerifying(false))
       .catch(() => navigate("/", { replace: true }));
-  }, [isLoading, user, id, navigate]);
+  }, [isLoading, user, id]);
 
-  const handleLogout = async () => {
+  // BEFORE: handleLogout was recreated on every render, causing child components to re-render unnecessarily
+  // AFTER: useCallback memoizes the function, only recreating it when dependencies (setUser, navigate) change
+  const handleLogout = useCallback(async () => {
     try {
       await logout();
       setUser(null);
     } finally {
       navigate("/", { replace: true });
     }
-  };
+  }, [setUser, navigate]);
 
-  const handleJoinRoom = async () => {
+  // BEFORE: handleJoinRoom was recreated on every render
+  // AFTER: useCallback memoizes it, only recreating when roomCode changes
+  const handleJoinRoom = useCallback(async () => {
     if (!roomCode.trim()) {
       setError("Please enter a room code");
       setTimeout(() => setError(""), 3000);
@@ -60,7 +66,7 @@ export default function StudentDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [roomCode]);
 
   if (isLoading || verifying) {
     return <Loader />;
