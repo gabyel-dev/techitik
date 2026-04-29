@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { getSession, refreshSession } from "../api/auth";
+import { getSession } from "../api/auth";
 
 const AuthContext = createContext(null);
 
@@ -12,7 +12,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const auth = async () => {
       try {
-        await refreshSession();
         const response = await getSession();
         setUser(response.user);
       } catch {

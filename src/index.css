@@ -4,6 +4,11 @@
 :root {
   --font-heading: "Sora", sans-serif;
   --font-body: "Google Sans", sans-serif;
+  --primary: #51b484;
+  --secondary: #2e2e2e;
+  --text-green: #0a5e0a;
+  --nav: #37a565;
+  --bg: #e1ffed;
 }
 
 * {
@@ -190,6 +195,18 @@ body {
   100% {
     left: 115%;
   }
+}
+
+/* Chrome/Safari/Edge */
+::-webkit-scrollbar {
+  width: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #ffffff;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--nav);
+  border-radius: 10px;
 }
 
 /* username - title case */

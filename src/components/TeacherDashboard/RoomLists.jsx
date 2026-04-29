@@ -1,67 +1,104 @@
-import { useEffect, useState } from "react";
-import { GetRooms } from "../../api/rooms";
-import { PiBooksDuotone, PiGearDuotone } from "react-icons/pi";
+import { useEffect } from "react";
+import { useRooms } from "../../context/roomContext";
+import { useSidebar } from "../../context/sidebarContext";
+import {
+  PiBooksDuotone,
+  PiUsersDuotone,
+  PiArrowRightDuotone,
+  PiClockDuotone,
+} from "react-icons/pi";
 
 export const GetRoomLists = () => {
-  const [rooms, setRooms] = useState([]);
-  console.log(rooms);
+  const { rooms, fetchRooms, loading } = useRooms();
+  const { isOpen } = useSidebar();
 
   useEffect(() => {
-    const fetchRooms = async () => {
-      const roomsData = await GetRooms();
-      setRooms(roomsData.rooms);
-    };
     fetchRooms();
-  }, []);
+  }, [fetchRooms]);
 
-  return (
-    <div className="grid grid-cols-1 gap-4">
-      {rooms.map((room) => (
-        <div
-          key={room.id}
-          className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-500/5"
-        >
-          {/* Subtle background subject tag */}
-          <div className="absolute -right-2 -top-2 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-            <PiBooksDuotone size={100} />
-          </div>
+  if (loading) {
+    return (
+      <div className="space-y-4 w-full px-4">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full"></div>
+        </div>
+      </div>
+    );
+  }
 
-          <div className="flex items-start justify-between">
-            <div className="space-y-1">
-              <h3 className="text-base font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
-                {room.name}
-              </h3>
-              <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                <span className="rounded-md bg-slate-100 px-2 py-0.5">
-                  {room.subject}
-                </span>
-                <span>•</span>
-                <span>{room.section}</span>
-              </div>
-            </div>
-            <button className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-50 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600">
-              <PiGearDuotone size={18} />
-            </button>
-          </div>
-
-          <div className="mt-6 flex items-center justify-between border-t border-slate-50 pt-4">
-            <div className="flex -space-x-2">
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="h-7 w-7 rounded-full border-2 border-white bg-slate-200"
-                ></div>
-              ))}
-              <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-emerald-50 text-[10px] font-bold text-emerald-600">
-                +12
-              </div>
-            </div>
-            <button className="text-xs font-bold text-slate-400 hover:text-emerald-600 transition-colors">
-              Open Room
-            </button>
+  if (!rooms || rooms.length === 0) {
+    return (
+      <div className="space-y-4 w-full px-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900">Rooms</h2>
           </div>
         </div>
-      ))}
+        <div className="text-center py-8 text-slate-500 text-sm">
+          No rooms yet. Create your first room!
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 w-full px-4">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900">Rooms</h2>
+        </div>
+        {isOpen && (
+          <button className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-all">
+            View All
+          </button>
+        )}
+      </div>
+
+      <div className="space-y-3">
+        {rooms.map((room) => (
+          <div
+            key={room?.id}
+            className="group relative rounded-3xl bg-[var(--bg)] p-5 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all duration-200 cursor-pointer"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`${isOpen ? "" : "flex items-center justify-center w-full"}`}
+                >
+                  <h3 className="font-semibold text-[var(--text-green)] group-hover:text-emerald-600 transition-colors">
+                    {isOpen ? room?.name : room?.name?.charAt(0)}
+                  </h3>
+                  {isOpen && (
+                    <p className="text-xs text-slate-500">{room?.subject}</p>
+                  )}
+                </div>
+              </div>
+              {isOpen && (
+                <PiArrowRightDuotone
+                  className="text-slate-300 group-hover:text-emerald-500 transition-colors"
+                  size={20}
+                />
+              )}
+            </div>
+
+            {isOpen && (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-full bg-[var(--secondary)] text-xs font-medium text-slate-50">
+                    {room?.section}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4 text-xl font-bold text-[var(--text-green)]">
+                  <div className="flex items-center gap-1">
+                    <PiUsersDuotone size={14} />
+                    <span>24</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
