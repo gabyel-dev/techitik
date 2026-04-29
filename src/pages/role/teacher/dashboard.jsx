@@ -53,21 +53,21 @@ export default function Dashboard() {
         <Sidebar />
 
         {/* Main Content Area */}
-        <main className="flex w-full flex-col overflow-hidden relative z-0">
+        <main className="flex w-full flex-col overflow-hidden">
           {/* Topbar */}
           <Header />
 
           {/* Dashboard Content */}
-          <div className="flex-1 overflow-x-hidden   p-4 md:p-8">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-8">
             {/* Welcome Banner */}
 
             <div className="mb-8 rounded-4xl md:max-h-50 max-h-40 flex  bg-[var(--primary)] py-6 px-3 text-white shadow-2xl shadow-emerald-500/40 relative">
               <img
                 src="/sprites/pose_4.png"
                 alt="sprites"
-                className="relative w-40 md:w-60 h-full md:-translate-y-10 md:translate-x-0 -translate-x-10 z-1"
+                className="relative w-40 md:w-60 h-full md:-translate-y-10 md:translate-x-0 -translate-x-6 z-1"
               />
-              <span className="relative text-[var(--secondary)] md:translate-y-15 -translate-x-20 text-2xl md:-translate-x-5 rotate-28 z-10">
+              <span className="relative text-[var(--secondary)] md:translate-y-15 -translate-x-18 text-2xl md:-translate-x-5 rotate-28 z-10">
                 ▲
               </span>
 
@@ -79,7 +79,7 @@ export default function Dashboard() {
                 />
               </div>
 
-              <div className="flex items-center h-fit min-w-50 max-w-100 justify-between -translate-x-16 -translate-y-4 md:translate-y-0 md:translate-x-0 bg-[var(--secondary)] rounded-3xl md:rounded-[40px] py-5 px-10 md:p-8 z-10">
+              <div className="flex items-center h-fit min-w-45 max-w-100 justify-between -translate-x-14 -translate-y-4 md:translate-y-0 md:translate-x-0 bg-[var(--secondary)] rounded-3xl md:rounded-[40px] py-5 px-10 md:p-8 z-10">
                 <div>
                   <h2 className="md:text-2xl text-xl font-semibold">
                     Welcome back,{" "}

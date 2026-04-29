@@ -4,6 +4,7 @@ import Dashboard from "./pages/role/teacher/dashboard.jsx";
 import PublicRoute from "./components/publicRoutes.jsx";
 import ProtectedRoute from "./components/protectedRoutes.jsx";
 import StudentDashboard from "./pages/role/student/dashboard.jsx";
+import RoomDetails from "./pages/RoomDetails.jsx";
 
 const App = () => {
   return (
@@ -32,6 +33,15 @@ const App = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/room/:roomId"
+          element={
+            <ProtectedRoute>
+              <RoomDetails />
             </ProtectedRoute>
           }
         />

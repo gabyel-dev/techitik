@@ -1,22 +1,34 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useRooms } from "../../context/roomContext";
 import { useSidebar } from "../../context/sidebarContext";
 import {
   PiBooksDuotone,
   PiUsersDuotone,
   PiArrowRightDuotone,
-  PiClockDuotone,
 } from "react-icons/pi";
+import { GetStudentRooms } from "../../api/rooms";
 
-export const GetRoomLists = () => {
-  const { rooms, fetchRooms, loading } = useRooms();
+export const GetStudentRoomLists = () => {
   const { isOpen } = useSidebar();
   const navigate = useNavigate();
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchRooms();
-  }, [fetchRooms]);
+    const fetchStudentRooms = async () => {
+      setLoading(true);
+      try {
+        const data = await GetStudentRooms();
+        setRooms(data.rooms || []);
+      } catch (error) {
+        console.error("Failed to fetch student rooms:", error);
+        setRooms([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStudentRooms();
+  }, []);
 
   if (loading) {
     return (
@@ -33,11 +45,11 @@ export const GetRoomLists = () => {
       <div className="space-y-4 w-full px-4">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">Rooms</h2>
+            <h2 className="text-sm font-semibold text-slate-900">My Classes</h2>
           </div>
         </div>
         <div className="text-center py-8 text-slate-500 text-sm">
-          No rooms yet. Create your first room!
+          No classes yet. Join your first class!
         </div>
       </div>
     );
@@ -47,7 +59,7 @@ export const GetRoomLists = () => {
     <div className="space-y-4 w-full px-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-sm font-semibold text-slate-900">Rooms</h2>
+          <h2 className="text-sm font-semibold text-slate-900">My Classes</h2>
         </div>
         {isOpen && (
           <button className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-all">
@@ -94,7 +106,7 @@ export const GetRoomLists = () => {
                 <div className="flex items-center gap-4 text-xl font-bold text-[var(--text-green)]">
                   <div className="flex items-center gap-1">
                     <PiUsersDuotone size={14} />
-                    <span>{room?.student_count}</span>
+                    <span>{room?.student_count || 0}</span>
                   </div>
                 </div>
               </div>
