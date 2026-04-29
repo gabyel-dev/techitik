@@ -64,13 +64,9 @@ export default function StudentDashboard() {
 
   return (
     <>
-      <div className="relative flex h-screen w-full bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 text-slate-800 font-[var(--font-body)]">
-        <StudentSidebar />
-
+      <div className="relative flex h-screen   w-full bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 text-slate-800 font-[var(--font-body)]">
         <main className="flex w-full flex-col ">
-          <StudentHeader />
-
-          <div className="flex-1 overflow-y-auto p-3 sm:p-8">
+          <div className="flex-1  p-3 sm:p-8">
             <div className="mb-8 rounded-4xl md:max-h-50 max-h-40 flex  bg-[var(--primary)] py-6 px-3 text-white shadow-2xl shadow-emerald-500/40 relative">
               <img
                 src="/sprites/pose_4.png"
@@ -104,8 +100,8 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            <div className="flex items-center mx-auto justify-center mb-4 sm:mb-8">
-              <div className="mx-auto flex flex-col items-center">
+            <div className="flex items-center mx-auto justify-center mb-4 sm:mb-8 ">
+              <div className="mx-auto flex flex-col items-center mt-15">
                 <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-slate-900">
                   My Dashboard
                 </h1>

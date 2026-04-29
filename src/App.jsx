@@ -13,6 +13,7 @@ import StudentClasses from "./pages/role/student/StudentClasses.jsx";
 import StudentAchievements from "./pages/role/student/StudentAchievements.jsx";
 import StudentSettings from "./pages/role/student/StudentSettings.jsx";
 import RoomDetails from "./pages/RoomDetails.jsx";
+import StudentDashboard from "./pages/role/student/dashboard.jsx";
 
 const App = () => {
   return (
@@ -35,7 +36,7 @@ const App = () => {
             </ProtectedRoute>
           }
         >
-          <Route index element={<StudentDashboardContent />} />
+          <Route index element={<StudentDashboard />} />
           <Route path="classes" element={<StudentClasses />} />
           <Route path="achievements" element={<StudentAchievements />} />
           <Route path="settings" element={<StudentSettings />} />
