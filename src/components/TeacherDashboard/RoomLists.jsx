@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useRooms } from "../../context/roomContext";
 import { useSidebar } from "../../context/sidebarContext";
 import {
@@ -13,6 +13,7 @@ export const GetRoomLists = () => {
   const { rooms, fetchRooms, loading } = useRooms();
   const { isOpen } = useSidebar();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     fetchRooms();
@@ -57,50 +58,57 @@ export const GetRoomLists = () => {
       </div>
 
       <div className="space-y-3">
-        {rooms.map((room) => (
-          <div
-            key={room?.id}
-            onClick={() => navigate(`/room/${room?.id}`)}
-            className="group relative rounded-3xl bg-[var(--bg)] p-5 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all duration-200 cursor-pointer"
-          >
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`${isOpen ? "" : "flex items-center justify-center w-full"}`}
-                >
-                  <h3 className="font-semibold text-[var(--text-green)] group-hover:text-emerald-600 transition-colors">
-                    {isOpen ? room?.name : room?.name?.charAt(0)}
-                  </h3>
-                  {isOpen && (
-                    <p className="text-xs text-slate-500">{room?.subject}</p>
-                  )}
-                </div>
-              </div>
-              {isOpen && (
-                <PiArrowRightDuotone
-                  className="text-slate-300 group-hover:text-emerald-500 transition-colors"
-                  size={20}
-                />
-              )}
-            </div>
-
-            {isOpen && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-full bg-[var(--secondary)] text-xs font-medium text-slate-50">
-                    {room?.section}
-                  </span>
-                </div>
-                <div className="flex items-center gap-4 text-xl font-bold text-[var(--text-green)]">
-                  <div className="flex items-center gap-1">
-                    <PiUsersDuotone size={14} />
-                    <span>{room?.student_count}</span>
+        {rooms.map((room) => {
+          const isActive = location.pathname.includes(`/room/${room?.id}`);
+          return (
+            <div
+              key={room?.id}
+              onClick={() => navigate(`room/${room?.id}`)}
+              className={`group relative rounded-3xl bg-[var(--bg)] p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
+                isActive
+                  ? "border-2 border-emerald-500 shadow-md"
+                  : "hover:border-emerald-200"
+              }`}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`${isOpen ? "" : "flex items-center justify-center w-full"}`}
+                  >
+                    <h3 className="font-semibold text-[var(--text-green)] group-hover:text-emerald-600 transition-colors">
+                      {isOpen ? room?.name : room?.name?.charAt(0)}
+                    </h3>
+                    {isOpen && (
+                      <p className="text-xs text-slate-500">{room?.subject}</p>
+                    )}
                   </div>
                 </div>
+                {isOpen && (
+                  <PiArrowRightDuotone
+                    className="text-slate-300 group-hover:text-emerald-500 transition-colors"
+                    size={20}
+                  />
+                )}
               </div>
-            )}
-          </div>
-        ))}
+
+              {isOpen && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-1 rounded-full bg-[var(--secondary)] text-xs font-medium text-slate-50">
+                      {room?.section}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xl font-bold text-[var(--text-green)]">
+                    <div className="flex items-center gap-1">
+                      <PiUsersDuotone size={14} />
+                      <span>{room?.student_count}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

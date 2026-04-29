@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { logout } from "../api/auth";
 import { useAuth } from "../context/authContext";
 import { useSidebar } from "../context/sidebarContext";
@@ -10,13 +10,16 @@ import { GetStudentRoomLists } from "./StudentDashboard/RoomLists";
 export default function StudentSidebar() {
   const { setUser } = useAuth();
   const { isOpen, setIsOpen, isPinned } = useSidebar();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     try {
       await logout();
       setUser(null);
-    } finally {
-      Navigate({ to: "/" }, { replace: true });
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Logout error:", error);
     }
   };
 
@@ -78,8 +81,13 @@ export default function StudentSidebar() {
           }`}
         >
           <span
+            onClick={() => navigate(".")} 
             className={`flex gap-2 items-center cursor-pointer hover:text-emerald-600 transition-colors ${
               isOpen ? "" : "justify-center"
+            } ${
+              location.pathname.split("/").length === 4 && !location.pathname.includes("/room/")
+                ? "text-emerald-600 font-semibold"
+                : ""
             }`}
             title={!isOpen ? "Dashboard" : ""}
           >
@@ -88,8 +96,13 @@ export default function StudentSidebar() {
           </span>
 
           <span
+            onClick={() => navigate("classes")}
             className={`flex gap-2 items-center cursor-pointer hover:text-emerald-600 transition-colors ${
               isOpen ? "" : "justify-center"
+            } ${
+              location.pathname.includes("/classes")
+                ? "text-emerald-600 font-semibold"
+                : ""
             }`}
             title={!isOpen ? "My Classes" : ""}
           >
@@ -98,8 +111,13 @@ export default function StudentSidebar() {
           </span>
 
           <span
+            onClick={() => navigate("achievements")}
             className={`flex gap-2 items-center cursor-pointer hover:text-emerald-600 transition-colors ${
               isOpen ? "" : "justify-center"
+            } ${
+              location.pathname.includes("/achievements")
+                ? "text-emerald-600 font-semibold"
+                : ""
             }`}
             title={!isOpen ? "Achievements" : ""}
           >
@@ -115,8 +133,13 @@ export default function StudentSidebar() {
         </div>
 
         <span
+          onClick={() => navigate("settings")}
           className={`flex gap-2 text-sm font-[var(--font-body)] cursor-pointer hover:text-emerald-600 transition-colors items-center ${
             isOpen ? "px-5" : "px-2 justify-center w-full"
+          } ${
+            location.pathname.includes("/settings")
+              ? "text-emerald-600 font-semibold"
+              : ""
           }`}
           title={!isOpen ? "Settings" : ""}
         >

@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { logout } from "../api/auth";
 import { useAuth } from "../context/authContext";
 import { useSidebar } from "../context/sidebarContext";
@@ -10,13 +10,16 @@ import { GetRoomLists } from "../components/TeacherDashboard/RoomLists";
 export default function Sidebar() {
   const { setUser } = useAuth();
   const { isOpen, setIsOpen, isPinned } = useSidebar();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = async () => {
     try {
       await logout();
       setUser(null);
-    } finally {
-      Navigate({ to: "/" }, { replace: true });
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error("Logout error:", error);
     }
   };
 
@@ -78,8 +81,13 @@ export default function Sidebar() {
           }`}
         >
           <span
+            onClick={() => navigate(".")} 
             className={`flex gap-2 items-center cursor-pointer hover:text-emerald-600 transition-colors ${
               isOpen ? "" : "justify-center"
+            } ${
+              location.pathname.split("/").length === 4 && !location.pathname.includes("/room/")
+                ? "text-emerald-600 font-semibold"
+                : ""
             }`}
             title={!isOpen ? "Dashboard" : ""}
           >
@@ -88,8 +96,13 @@ export default function Sidebar() {
           </span>
 
           <span
+            onClick={() => navigate("quizzes")}
             className={`flex gap-2 items-center cursor-pointer hover:text-emerald-600 transition-colors ${
               isOpen ? "" : "justify-center"
+            } ${
+              location.pathname.includes("/quizzes")
+                ? "text-emerald-600 font-semibold"
+                : ""
             }`}
             title={!isOpen ? "Quizzes" : ""}
           >
@@ -98,8 +111,13 @@ export default function Sidebar() {
           </span>
 
           <span
+            onClick={() => navigate("students")}
             className={`flex gap-2 items-center cursor-pointer hover:text-emerald-600 transition-colors ${
               isOpen ? "" : "justify-center"
+            } ${
+              location.pathname.includes("/students")
+                ? "text-emerald-600 font-semibold"
+                : ""
             }`}
             title={!isOpen ? "Students" : ""}
           >
@@ -119,8 +137,13 @@ export default function Sidebar() {
         </div>
 
         <span
+          onClick={() => navigate("settings")}
           className={`flex gap-2 text-sm font-[var(--font-body)] cursor-pointer hover:text-emerald-600 transition-colors items-center ${
             isOpen ? "px-5" : "px-2 justify-center w-full"
+          } ${
+            location.pathname.includes("/settings")
+              ? "text-emerald-600 font-semibold"
+              : ""
           }`}
           title={!isOpen ? "Settings" : ""}
         >
