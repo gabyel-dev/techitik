@@ -8,7 +8,7 @@ import TeacherQuizzes from "./pages/role/teacher/TeacherQuizzes.jsx";
 import TeacherStudents from "./pages/role/teacher/TeacherStudents.jsx";
 import TeacherSettings from "./pages/role/teacher/TeacherSettings.jsx";
 import StudentLayout from "./pages/role/student/StudentLayout.jsx";
-import StudentDashboardContent from "./pages/role/student/StudentDashboardContent.jsx";
+
 import StudentClasses from "./pages/role/student/StudentClasses.jsx";
 import StudentAchievements from "./pages/role/student/StudentAchievements.jsx";
 import StudentSettings from "./pages/role/student/StudentSettings.jsx";
