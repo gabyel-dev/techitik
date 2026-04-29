@@ -14,6 +14,7 @@ import {
   PiClockDuotone,
   PiUsersDuotone,
 } from "react-icons/pi";
+import toast from "react-hot-toast";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -49,8 +50,11 @@ export default function StudentDashboard() {
 
     try {
       await JoinRoom({ room_code: roomCode });
+
+      toast.success("Joined room successfully!");
       setRoomCode("");
     } catch (err) {
+      toast.error("Failed to join room");
       setError(err.response?.data?.message || "Failed to join room");
       setTimeout(() => setError(""), 6000);
     } finally {
