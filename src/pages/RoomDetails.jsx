@@ -9,7 +9,10 @@ import {
   PiCalendarDuotone,
   PiArrowLeftDuotone,
   PiCrownDuotone,
+  PiShareNetworkDuotone,
+  PiCheckDuotone,
 } from "react-icons/pi";
+import toast from "react-hot-toast";
 
 export default function RoomDetails() {
   const navigate = useNavigate();
@@ -17,11 +20,9 @@ export default function RoomDetails() {
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const hasLoaded = useRef(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (hasLoaded.current) return;
-    hasLoaded.current = true;
     fetchRoomDetails();
   }, [roomId]);
 
@@ -43,6 +44,27 @@ export default function RoomDetails() {
       month: "short",
       day: "numeric",
     });
+  };
+
+  const handleShareInvite = async () => {
+    const inviteUrl = `${window.location.origin}/invite/${room?.room_code}`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: `Join ${room?.name}`,
+          text: `You've been invited to join ${room?.name}!`,
+          url: inviteUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(inviteUrl);
+        toast.success("Invite copied!");
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }
+    } catch (err) {
+      console.error("Share failed:", err);
+    }
   };
 
   if (loading) {
@@ -103,18 +125,40 @@ export default function RoomDetails() {
               </div>
             </div>
           </div>
-          <div className="bg-slate-100 px-4 py-2 rounded-lg">
-            <p className="text-xs text-slate-500 uppercase tracking-wider">
-              Room Code
-            </p>
-            <p className="text-xl font-bold text-[var(--primary)] uppercase">
-              {room?.room_code}
-            </p>
+          <div className="flex gap-3">
+            <button
+              onClick={handleShareInvite}
+              className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-emerald-600 transition-colors"
+              title="Share invitation link"
+            >
+              {copied ? (
+                <>
+                  <PiCheckDuotone size={20} />
+                  <span className="text-sm font-medium">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <PiShareNetworkDuotone size={20} />
+                  <span className="text-sm font-medium">Share Invite</span>
+                </>
+              )}
+            </button>
+            <div className="bg-slate-100 px-4 py-2 rounded-lg">
+              <p className="text-xs text-slate-500 uppercase tracking-wider">
+                Room Code
+              </p>
+              <p className="text-xl font-bold text-[var(--primary)] uppercase">
+                {room?.room_code}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+      <div
+        className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden animate-fadeIn"
+        style={{ animationDelay: "0.1s" }}
+      >
         <div className="border-b border-slate-100 px-6 py-5 flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
@@ -143,10 +187,7 @@ export default function RoomDetails() {
                     <p className="font-medium text-slate-900 flex items-center gap-2">
                       {member.user?.full_name}
                       {member.role === "teacher" && (
-                        <PiCrownDuotone
-                          size={16}
-                          className="text-amber-500"
-                        />
+                        <PiCrownDuotone size={16} className="text-amber-500" />
                       )}
                     </p>
                     <p className="text-xs text-slate-500">

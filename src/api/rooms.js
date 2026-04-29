@@ -24,3 +24,8 @@ export const GetRoomDetails = async (roomId) => {
   const response = await api.get(`/room/details/${roomId}`);
   return response.data;
 };
+
+export const JoinRoomByInvite = async (roomCode) => {
+  const response = await api.get(`/room/invite/${roomCode}`);
+  return response.data;
+};

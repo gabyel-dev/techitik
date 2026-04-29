@@ -8,11 +8,11 @@ import TeacherQuizzes from "./pages/role/teacher/TeacherQuizzes.jsx";
 import TeacherStudents from "./pages/role/teacher/TeacherStudents.jsx";
 import TeacherSettings from "./pages/role/teacher/TeacherSettings.jsx";
 import StudentLayout from "./pages/role/student/StudentLayout.jsx";
-
 import StudentClasses from "./pages/role/student/StudentClasses.jsx";
 import StudentAchievements from "./pages/role/student/StudentAchievements.jsx";
 import StudentSettings from "./pages/role/student/StudentSettings.jsx";
 import RoomDetails from "./pages/RoomDetails.jsx";
+import RoomInvite from "./pages/RoomInvite.jsx";
 import StudentDashboard from "./pages/role/student/dashboard.jsx";
 
 const App = () => {
@@ -42,6 +42,15 @@ const App = () => {
           <Route path="settings" element={<StudentSettings />} />
           <Route path="room/:roomId" element={<RoomDetails />} />
         </Route>
+
+        <Route
+          path="/invite/:roomCode"
+          element={
+            <ProtectedRoute>
+              <RoomInvite />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/dashboard/t/:id"
