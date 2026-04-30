@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { useAuth } from "./authContext";
+import { useRooms } from "./roomContext";
 
 const SidebarContext = createContext(null);
 
@@ -8,6 +10,7 @@ export const SidebarProvider = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const { loading } = useAuth();
 
   useEffect(() => {
     const handleResize = () => {

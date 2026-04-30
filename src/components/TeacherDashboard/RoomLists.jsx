@@ -48,9 +48,9 @@ export const GetRoomLists = () => {
             <div
               key={room?.id}
               onClick={() => navigate(`room/${room?.id}`)}
-              className={`group relative rounded-3xl bg-[var(--bg)] p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
+              className={`group relative rounded-3xl bg-[var(--secondary)] p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
                 isActive
-                  ? "border-2 border-emerald-500 shadow-md"
+                  ? "border-2 border-emerald-500 shadow-2xl shadow-emerald-500"
                   : "hover:border-emerald-200"
               }`}
             >
@@ -59,7 +59,7 @@ export const GetRoomLists = () => {
                   <div
                     className={`flex-1 min-w-0 ${isOpen ? "" : "flex items-center justify-center w-full"}`}
                   >
-                    <h3 className="font-semibold truncate text-[var(--text-green)] group-hover:text-emerald-600 transition-colors">
+                    <h3 className="font-semibold truncate text-[var(--nav)] group-hover:text-emerald-200 transition-colors">
                       {isOpen ? room?.name : room?.name?.charAt(0)}
                     </h3>
                     {isOpen && (
@@ -80,11 +80,11 @@ export const GetRoomLists = () => {
               {isOpen && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-full bg-[var(--secondary)] text-xs font-medium text-slate-50">
+                    <span className="px-2.5 py-1 rounded-full bg-[var(--primary)] text-xs font-medium text-slate-50">
                       {room?.section}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 text-xl font-bold text-[var(--text-green)]">
+                  <div className="flex items-center gap-4 text-xl font-bold text-white">
                     <div className="flex items-center gap-1">
                       <PiUsersDuotone size={14} />
                       <span>{room?.student_count}</span>
