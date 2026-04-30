@@ -32,11 +32,6 @@ export const GetRoomLists = () => {
   if (!rooms || rooms.length === 0) {
     return (
       <div className="space-y-4 w-full px-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">Rooms</h2>
-          </div>
-        </div>
         <div className="text-center py-8 text-slate-500 text-sm">
           No rooms yet. Create your first room!
         </div>
@@ -45,8 +40,8 @@ export const GetRoomLists = () => {
   }
 
   return (
-    <div className="space-y-4 w-full h-fit pb-3 px-4">
-      <div className="space-y-3">
+    <div className="space-y-4 w-full  pb-3 px-4">
+      <div className="space-y-3 overflow-hidden">
         {rooms.map((room) => {
           const isActive = location.pathname.includes(`/room/${room?.id}`);
           return (

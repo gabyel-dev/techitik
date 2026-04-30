@@ -144,12 +144,12 @@ export default function Sidebar() {
         </div>
 
         <div
-          className={`w-full h-fit transition-all duration-300 overflow-auto  ${isOpen ? "opacity-100" : "hidden "}`}
+          className={`w-full  transition-all duration-300 overflow-auto  ${isOpen ? "opacity-100" : "hidden "}`}
         >
           <GetRoomLists />
         </div>
 
-        <div className="w-full flex flex-col gap-4 sticky bottom-0 bg-white py-5">
+        <div className="w-full flex flex-col gap-4  bottom-0 bg-white py-5">
           <span
             onClick={() => navigate("settings")}
             className={`flex gap-2 text-sm font-[var(--font-body)] cursor-pointer hover:text-emerald-600 transition-colors items-center ${
