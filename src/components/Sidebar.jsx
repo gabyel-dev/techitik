@@ -144,7 +144,7 @@ export default function Sidebar() {
         </div>
 
         <div
-          className={`w-full h-full transition-all duration-300 overflow-auto  ${isOpen ? "opacity-100" : "hidden "}`}
+          className={`w-full h-fit transition-all duration-300 overflow-auto  ${isOpen ? "opacity-100" : "hidden "}`}
         >
           <GetRoomLists />
         </div>
