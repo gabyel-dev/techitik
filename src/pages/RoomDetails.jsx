@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { GetRoomDetails } from "../api/rooms";
 import Loader from "../components/loader";
@@ -20,7 +20,6 @@ export default function RoomDetails() {
   const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetchRoomDetails();
@@ -59,8 +58,6 @@ export default function RoomDetails() {
       } else {
         await navigator.clipboard.writeText(inviteUrl);
         toast.success("Invite copied!");
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
       }
     } catch (err) {
       console.error("Share failed:", err);
@@ -146,7 +143,7 @@ export default function RoomDetails() {
           <div>
             <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
               <PiUsersDuotone size={24} className="text-[var(--primary)]" />
-              Members
+              Students
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               {room?.members?.length || 0} total members

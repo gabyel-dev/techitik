@@ -43,12 +43,7 @@ export const GetStudentRoomLists = () => {
 
   if (!rooms || rooms.length === 0) {
     return (
-      <div className="space-y-4 w-full px-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">My Classes</h2>
-          </div>
-        </div>
+      <div className="space-y-4 w-full ">
         <div className="text-center py-8 text-slate-500 text-sm">
           No classes yet. Join your first class!
         </div>
@@ -57,18 +52,7 @@ export const GetStudentRoomLists = () => {
   }
 
   return (
-    <div className="space-y-4 w-full px-4">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-900">My Classes</h2>
-        </div>
-        {isOpen && (
-          <button className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-all">
-            View All
-          </button>
-        )}
-      </div>
-
+    <div className="space-y-4 w-full">
       <div className="space-y-3">
         {rooms.map((room) => {
           const isActive = location.pathname.includes(`/room/${room?.id}`);

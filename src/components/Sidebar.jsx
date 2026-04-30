@@ -1,182 +1,37 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import { logout } from "../api/auth";
-import { useAuth } from "../context/authContext";
-import { useSidebar } from "../context/sidebarContext";
-import { PiGearDuotone, PiSignOutDuotone } from "react-icons/pi";
-
-import { Book2, Dashboard, FolderOpen, IdCard } from "@duo-icons/react";
-import { GetRoomLists } from "../components/TeacherDashboard/RoomLists";
+import { useLocation } from "react-router-dom";
+import { Dashboard, FolderOpen, IdCard } from "@duo-icons/react";
+import { GetRoomLists } from "./TeacherDashboard/RoomLists";
+import SharedSidebar from "./shared/SharedSidebar";
 
 export default function Sidebar() {
-  const { setUser } = useAuth();
-  const { isOpen, setIsOpen, isPinned, isDesktop } = useSidebar();
-  const navigate = useNavigate();
   const location = useLocation();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      setUser(null);
-      navigate("/", { replace: true });
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-  };
-
-  const handleMouseEnter = () => {
-    if (!isPinned && isDesktop) {
-      setIsOpen(true);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    if (!isPinned && isDesktop) {
-      setIsOpen(false);
-    }
-  };
+  const navItems = [
+    {
+      name: "Dashboard",
+      icon: Dashboard,
+      path: ".",
+      isActive: location.pathname.split("/").length === 4 && !location.pathname.includes("/room/"),
+    },
+    {
+      name: "Quizzes",
+      icon: FolderOpen,
+      path: "quizzes",
+      isActive: location.pathname.includes("/quizzes"),
+    },
+    {
+      name: "Students",
+      icon: IdCard,
+      path: "students",
+      isActive: location.pathname.includes("/students"),
+    },
+  ];
 
   return (
-    <>
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-[45] transition-opacity duration-300"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        className={`__side_bar__ flex flex-col items-start gap-0 justify-between bg-white border-r-1 border-emerald-700/40 transition-all duration-300 z-[46] fixed lg:sticky inset-y-0 left-0 ${
-          isOpen
-            ? "translate-x-0 w-[80%] lg:w-80"
-            : "-translate-x-full lg:translate-x-0 lg:w-20"
-        }`}
-        style={{ height: "100vh" }}
-      >
-        <div className="flex flex-col items-center justify-center w-full sticky top-0 z-100 bg-white">
-          <div
-            className={`flex mb-6  w-full h-fit py-7 items-center justify-center bg-[var(--primary)] rounded-b-[45px] transition-all duration-300 ${
-              isOpen ? "" : "px-2"
-            }`}
-          >
-            <img
-              src="/app_logo.png"
-              alt="TechItik Logo"
-              className={`transition-all duration-300 ${
-                isOpen ? "w-20" : "w-12"
-              }`}
-            />
-          </div>
-
-          <section
-            className={`__nav_links__ w-full text-sm font-[var(--font-body)] flex flex-col gap-4 ${
-              isOpen ? "px-5" : "px-2 items-center justive-center w-full"
-            }`}
-          >
-            <span
-              onClick={() => navigate(".")}
-              className={`flex gap-2 items-center cursor-pointer hover:text-emerald-600 transition-colors ${
-                isOpen ? "" : "justify-center"
-              } ${
-                location.pathname.split("/").length === 4 &&
-                !location.pathname.includes("/room/")
-                  ? "text-emerald-600 font-semibold"
-                  : ""
-              }`}
-              title={!isOpen ? "Dashboard" : ""}
-            >
-              <Dashboard size={24} color="var(--primary)" />
-              {isOpen && <p>Dashboard</p>}
-            </span>
-
-            <span
-              onClick={() => navigate("quizzes")}
-              className={`flex gap-2 items-center cursor-pointer hover:text-emerald-600 transition-colors ${
-                isOpen ? "" : "justify-center"
-              } ${
-                location.pathname.includes("/quizzes")
-                  ? "text-emerald-600 font-semibold"
-                  : ""
-              }`}
-              title={!isOpen ? "Quizzes" : ""}
-            >
-              <FolderOpen size={24} color="var(--primary)" />
-              {isOpen && <p>Quizzes</p>}
-            </span>
-
-            <span
-              onClick={() => navigate("students")}
-              className={`flex gap-2 items-center cursor-pointer hover:text-emerald-600 transition-colors ${
-                isOpen ? "" : "justify-center"
-              } ${
-                location.pathname.includes("/students")
-                  ? "text-emerald-600 font-semibold"
-                  : ""
-              }`}
-              title={!isOpen ? "Students" : ""}
-            >
-              <IdCard size={24} color="var(--primary)" />
-              {isOpen && <p>Students</p>}
-            </span>
-
-            <span
-              className={`inset-0  h-px bg-slate-200 ${isOpen ? "w-[100%]" : "w-10"}`}
-            ></span>
-          </section>
-
-          <div className={`flex items-center w-full justify-between my-2 px-5`}>
-            {isOpen && (
-              <>
-                <div>
-                  <h2 className="text-sm font-semibold text-slate-900">
-                    Rooms
-                  </h2>
-                </div>
-                <button className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-all">
-                  View All
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div
-          className={`w-full  transition-all  pb-[64px]  duration-300 overflow-auto  ${isOpen ? "opacity-100" : "hidden "}`}
-        >
-          <GetRoomLists />
-        </div>
-
-        <div className="w-full flex flex-col gap-4 sticky bottom-0 bg-white py-5">
-          <span
-            onClick={() => navigate("settings")}
-            className={`flex gap-2 text-sm font-[var(--font-body)] cursor-pointer hover:text-emerald-600 transition-colors items-center ${
-              isOpen ? "px-5" : "px-2 justify-center w-full"
-            } ${
-              location.pathname.includes("/settings")
-                ? "text-emerald-600 font-semibold"
-                : ""
-            }`}
-            title={!isOpen ? "Settings" : ""}
-          >
-            <PiGearDuotone size={24} color="var(--primary)" />
-            {isOpen && <p>Settings</p>}
-          </span>
-
-          <button
-            onClick={handleLogout}
-            className={`flex gap-2 text-sm font-[var(--font-body)] hover:bg-slate-100 transition-colors duration-200 items-center ${
-              isOpen ? "px-5" : "px-2 justify-center items-center w-full"
-            }`}
-            title={!isOpen ? "Logout" : ""}
-          >
-            <PiSignOutDuotone size={24} color="red" />
-            {isOpen && <p>Logout</p>}
-          </button>
-        </div>
-      </aside>
-    </>
+    <SharedSidebar
+      navItems={navItems}
+      roomListComponent={GetRoomLists}
+      roomsTitle="My Rooms"
+    />
   );
 }

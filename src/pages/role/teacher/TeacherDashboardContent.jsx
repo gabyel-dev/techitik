@@ -14,22 +14,22 @@ export default function TeacherDashboardContent() {
   const { user } = useAuth();
 
   return (
-    <div className="p-4 md:p-8 animate-fadeIn relative">
+    <div className="p-4 md:p-8 animate-fadeIn ">
       {/* Floating Create Room Button - Mobile & Tablet Only */}
       <button
         onClick={() => setIsModalVisible(true)}
-        className="md:hidden fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/40 hover:shadow-emerald-500/60 active:scale-95 transition-all duration-200 flex items-center justify-center"
+        className="md:hidden z-1 fixed bottom-6 right-6 h-14 w-14 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/40 hover:shadow-emerald-500/60 active:scale-95 transition-all duration-200 flex items-center justify-center"
         aria-label="Create New Room"
       >
         <PiPlusDuotone size={24} />
       </button>
-      <div className="mb-8 rounded-4xl md:max-h-50 max-h-40 flex bg-[var(--primary)] py-6 px-3 text-white shadow-2xl shadow-emerald-500/40 relative">
+      <div className="mb-8 rounded-4xl md:max-h-50 max-h-40 flex bg-[var(--primary)] relative py-6 px-3 text-white shadow-2xl shadow-emerald-500/40 ">
         <img
           src="/sprites/pose_4.png"
           alt="sprites"
-          className="relative w-40 md:w-60 h-full md:-translate-y-10 md:translate-x-0 -translate-x-6 z-1"
+          className="relative w-40 md:w-60 h-full md:-translate-y-10 md:translate-x-0 -translate-x-6 "
         />
-        <span className="relative text-[var(--secondary)] md:translate-y-15 -translate-x-18 text-2xl md:-translate-x-5 rotate-28 z-10">
+        <span className="relative text-[var(--secondary)] md:translate-y-15 -translate-x-18 text-2xl md:-translate-x-5 rotate-28 ">
           ▲
         </span>
 
@@ -41,7 +41,7 @@ export default function TeacherDashboardContent() {
           />
         </div>
 
-        <div className="flex items-center h-fit min-w-45 max-w-100 justify-between -translate-x-14 -translate-y-4 md:translate-y-0 md:translate-x-0 bg-[var(--secondary)] rounded-3xl md:rounded-[40px] py-5 px-10 md:p-8 z-10">
+        <div className="flex items-center h-fit min-w-45 max-w-100 justify-between -translate-x-14 -translate-y-4 md:translate-y-0 md:translate-x-0 bg-[var(--secondary)] rounded-3xl md:rounded-[40px] py-5 px-10 md:p-8 ">
           <div>
             <h2 className="md:text-2xl text-xl font-semibold">
               Welcome back,{" "}

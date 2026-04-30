@@ -23,7 +23,7 @@ export const GetRoomLists = () => {
     return (
       <div className="space-y-4 w-full px-4">
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full"></div>
+          <div className="animate-spin h-8 w-8 border-4 border-emerald-500 border-t-emerald-200 rounded-full"></div>
         </div>
       </div>
     );
@@ -31,7 +31,7 @@ export const GetRoomLists = () => {
 
   if (!rooms || rooms.length === 0) {
     return (
-      <div className="space-y-4 w-full px-4">
+      <div className="space-y-4 w-full">
         <div className="text-center py-8 text-slate-500 text-sm">
           No rooms yet. Create your first room!
         </div>
@@ -40,7 +40,7 @@ export const GetRoomLists = () => {
   }
 
   return (
-    <div className="space-y-4 w-full  pb-3 px-4">
+    <div className="space-y-4 w-full  pb-3 ">
       <div className="space-y-3 overflow-hidden">
         {rooms.map((room) => {
           const isActive = location.pathname.includes(`/room/${room?.id}`);
@@ -48,7 +48,7 @@ export const GetRoomLists = () => {
             <div
               key={room?.id}
               onClick={() => navigate(`room/${room?.id}`)}
-              className={`group relative rounded-3xl bg-[var(--secondary)] p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
+              className={`group relative rounded-xl bg-[var(--secondary)] p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
                 isActive
                   ? "border-2 border-emerald-500 shadow-2xl shadow-emerald-500"
                   : "hover:border-emerald-200"
