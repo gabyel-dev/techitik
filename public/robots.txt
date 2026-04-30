@@ -1,0 +1,10 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Disallow private routes
+Disallow: /dashboard/
+Disallow: /invite/
+
+# Sitemap location
+Sitemap: https://techitik.com/sitemap.xml
