@@ -60,7 +60,7 @@ export const GetStudentRoomLists = () => {
             <div
               key={room?.id}
               onClick={() => navigate(`room/${room?.id}`)}
-              className={`group relative rounded-3xl bg-[var(--bg)] p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
+              className={`group relative rounded-xl bg-[var(--bg)] p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
                 isActive
                   ? "border-2 border-emerald-500 shadow-md"
                   : "hover:border-emerald-200"
