@@ -12,6 +12,17 @@
       "source": "/dashboard/verify/:path*",
       "destination": "https://techitik-server.onrender.com/dashboard/verify/:path*"
     },
+
+    {
+      "source": "/quiz/:path*",
+      "destination": "https://techitik-server.onrender.com/quiz/:path*"
+    },
+
+    {
+      "source": "/attempt/:path*",
+      "destination": "https://techitik-server.onrender.com/attempt/:path*"
+    },
+
     {
       "source": "/(.*)",
       "destination": "/index.html"
