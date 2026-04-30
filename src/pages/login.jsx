@@ -40,7 +40,6 @@ export default function Login() {
 
         const googleUser = userInfoResponse.data;
         const normalizedEmail = googleUser?.email?.trim().toLowerCase();
-        console.log(googleUser);
 
         if (!normalizedEmail?.endsWith(`@${ALLOWED_EMAIL_DOMAIN}`)) {
           throw new Error(

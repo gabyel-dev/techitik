@@ -14,6 +14,10 @@ import StudentSettings from "./pages/role/student/StudentSettings.jsx";
 import RoomDetails from "./pages/RoomDetails.jsx";
 import RoomInvite from "./pages/RoomInvite.jsx";
 import StudentDashboard from "./pages/role/student/dashboard.jsx";
+import QuizBuilder from "./components/QuizBuilder/QuizBuilder.jsx";
+import StudentQuizTaking from "./components/Quiz/StudentQuizTaking.jsx";
+import TeacherSubmissions from "./components/Quiz/TeacherSubmissions.jsx";
+import StudentScoreView from "./components/Quiz/StudentScoreView.jsx";
 
 const App = () => {
   return (
@@ -29,6 +33,13 @@ const App = () => {
         />
 
         <Route
+          path="/dashboard/t/:id/room/:roomId/quiz/:quizId"
+          element={<QuizBuilder />}
+        />
+
+        <Route path="room/:roomId/create-quiz" element={<QuizBuilder />} />
+
+        <Route
           path="/dashboard/s/:id"
           element={
             <ProtectedRoute>
@@ -41,6 +52,8 @@ const App = () => {
           <Route path="achievements" element={<StudentAchievements />} />
           <Route path="settings" element={<StudentSettings />} />
           <Route path="room/:roomId" element={<RoomDetails />} />
+          <Route path="room/:roomId/quiz/:quizId/take" element={<StudentQuizTaking />} />
+          <Route path="room/:roomId/quiz/:quizId/score" element={<StudentScoreView />} />
         </Route>
 
         <Route
@@ -65,6 +78,8 @@ const App = () => {
           <Route path="students" element={<TeacherStudents />} />
           <Route path="settings" element={<TeacherSettings />} />
           <Route path="room/:roomId" element={<RoomDetails />} />
+          <Route path="room/:roomId/quiz/:quizId" element={<QuizBuilder />} />
+          <Route path="room/:roomId/quiz/:quizId/submissions" element={<TeacherSubmissions />} />
         </Route>
       </Routes>
     </Router>
