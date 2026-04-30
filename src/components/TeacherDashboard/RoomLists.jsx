@@ -46,17 +46,6 @@ export const GetRoomLists = () => {
 
   return (
     <div className="space-y-4 w-full px-4">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-900">Rooms</h2>
-        </div>
-        {isOpen && (
-          <button className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-all">
-            View All
-          </button>
-        )}
-      </div>
-
       <div className="space-y-3">
         {rooms.map((room) => {
           const isActive = location.pathname.includes(`/room/${room?.id}`);
@@ -71,21 +60,19 @@ export const GetRoomLists = () => {
               }`}
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`${isOpen ? "" : "flex items-center justify-center w-full"}`}
-                  >
-                    <h3 className="font-semibold text-[var(--text-green)] group-hover:text-emerald-600 transition-colors">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className={`flex-1 min-w-0 ${isOpen ? "" : "flex items-center justify-center w-full"}`}>
+                    <h3 className="font-semibold truncate text-[var(--text-green)] group-hover:text-emerald-600 transition-colors">
                       {isOpen ? room?.name : room?.name?.charAt(0)}
                     </h3>
                     {isOpen && (
-                      <p className="text-xs text-slate-500">{room?.subject}</p>
+                      <p className="text-xs text-slate-500 truncate">{room?.subject}</p>
                     )}
                   </div>
                 </div>
                 {isOpen && (
                   <PiArrowRightDuotone
-                    className="text-slate-300 group-hover:text-emerald-500 transition-colors"
+                    className="text-slate-300 group-hover:text-emerald-500 transition-colors flex-shrink-0"
                     size={20}
                   />
                 )}

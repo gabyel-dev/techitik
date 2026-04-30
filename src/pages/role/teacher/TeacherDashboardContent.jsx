@@ -14,7 +14,15 @@ export default function TeacherDashboardContent() {
   const { user } = useAuth();
 
   return (
-    <div className="p-4 md:p-8 animate-fadeIn">
+    <div className="p-4 md:p-8 animate-fadeIn relative">
+      {/* Floating Create Room Button - Mobile & Tablet Only */}
+      <button
+        onClick={() => setIsModalVisible(true)}
+        className="md:hidden fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/40 hover:shadow-emerald-500/60 active:scale-95 transition-all duration-200 flex items-center justify-center"
+        aria-label="Create New Room"
+      >
+        <PiPlusDuotone size={24} />
+      </button>
       <div className="mb-8 rounded-4xl md:max-h-50 max-h-40 flex bg-[var(--primary)] py-6 px-3 text-white shadow-2xl shadow-emerald-500/40 relative">
         <img
           src="/sprites/pose_4.png"
@@ -65,9 +73,8 @@ export default function TeacherDashboardContent() {
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             Dashboard Overview
           </h1>
-          <p className="mt-1 text-sm text-slate-500 flex items-center gap-2">
+          <p className="mt-1 text-sm text-slate-500 flex items-center text-center gap-2">
             Here's what's happening with your classes today.
-            <PiSparkleDuotone className="text-amber-400" size={16} />
           </p>
           {isModalVisible && (
             <CreateRoomModal onClose={() => setIsModalVisible(false)} />
@@ -107,7 +114,9 @@ export default function TeacherDashboardContent() {
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Active Students
                     </p>
-                    <p className="text-3xl font-bold text-slate-900 mt-1">142</p>
+                    <p className="text-3xl font-bold text-slate-900 mt-1">
+                      142
+                    </p>
                   </div>
                 </div>
                 <div className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">

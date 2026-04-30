@@ -30,7 +30,7 @@ export default function StudentLayout() {
   }
 
   return (
-    <div className="relative flex h-screen w-full bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 text-slate-800 font-[var(--font-body)]">
+    <div className="relative flex h-screen w-full bg-emerald-50 text-slate-800 font-[var(--font-body)]">
       <StudentSidebar />
       <main className="flex w-full flex-col">
         <StudentHeader />

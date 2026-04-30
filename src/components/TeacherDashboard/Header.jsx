@@ -6,7 +6,7 @@ import {
 } from "react-icons/pi";
 import { useAuth } from "../../context/authContext";
 import { useSidebar } from "../../context/sidebarContext";
-import { AlignCenter } from "@duo-icons/react";
+import { AlignCenter, Menu } from "@duo-icons/react";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../../api/auth";
@@ -46,7 +46,7 @@ export default function Header() {
           onClick={toggleSidebar}
           className="cursor-pointer hover:opacity-80 transition-opacity"
         >
-          <AlignCenter size={20} className="sm:w-6 sm:h-6" color="white" />
+          <Menu size={20} className="w-8 h-8 " color="white" />
         </button>
         <img src="/logo.png" alt="PTC Logo" className="w-7 sm:w-9" />
       </div>

@@ -48,7 +48,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="relative flex h-screen w-full bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 text-slate-800 font-[var(--font-body)]">
+      <div className="relative flex h-screen w-full bg-emerald-50/30 text-slate-800 font-[var(--font-body)]">
         {/* Sidebar */}
         <Sidebar />
 
@@ -122,9 +122,9 @@ export default function Dashboard() {
             </div>
 
             <main className="__main_container__ flex gap-8 w-full relative">
-              <section className="__overview__ flex-[2]">
+              <section className="__overview__ ">
                 {/* Stats Overview */}
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3   mb-8">
+                <div className="grid grid-cols-1 gap-3  lg:grid-cols-3   mb-8">
                   <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">

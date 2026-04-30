@@ -92,19 +92,11 @@ export default function RoomDetails() {
   }
 
   return (
-    <div className="p-3 sm:p-8 animate-slideIn">
-      <button
-        onClick={() => navigate(-1)}
-        className="mb-6 flex items-center gap-2 text-slate-600 hover:text-[var(--primary)] transition-colors"
-      >
-        <PiArrowLeftDuotone size={20} />
-        <span className="text-sm font-medium">Back</span>
-      </button>
-
-      <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm mb-6 animate-fadeIn">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">
+    <div className="p-3 sm:p-8 animate-slideIn flex-1 min-w-0">
+      <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm mb-6 animate-fadeIn flex-1 min-w-0">
+        <div className="flex items-start justify-between mb-6 flex-1 min-w-10">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-3xl truncate font-bold text-slate-900 mb-2">
               {room?.name}
             </h1>
             <div className="flex flex-wrap gap-4 text-sm text-slate-600">
@@ -117,7 +109,7 @@ export default function RoomDetails() {
                   size={18}
                   className="text-emerald-500"
                 />
-                <span>Section: {room?.section}</span>
+                <span> {room?.section}</span>
               </div>
               <div className="flex items-center gap-2">
                 <PiCalendarDuotone size={18} className="text-amber-500" />
@@ -125,33 +117,24 @@ export default function RoomDetails() {
               </div>
             </div>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={handleShareInvite}
-              className="flex items-center gap-2 px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-emerald-600 transition-colors"
-              title="Share invitation link"
-            >
-              {copied ? (
-                <>
-                  <PiCheckDuotone size={20} />
-                  <span className="text-sm font-medium">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <PiShareNetworkDuotone size={20} />
-                  <span className="text-sm font-medium">Share Invite</span>
-                </>
-              )}
-            </button>
-            <div className="bg-slate-100 px-4 py-2 rounded-lg">
-              <p className="text-xs text-slate-500 uppercase tracking-wider">
-                Room Code
-              </p>
-              <p className="text-xl font-bold text-[var(--primary)] uppercase">
-                {room?.room_code}
-              </p>
-            </div>
+        </div>
+
+        <div className="flex gap-3 w-full justify-end right-0">
+          <div className="bg-slate-100 px-4 py-2 rounded-lg">
+            <p className="text-xs text-slate-500 uppercase tracking-wider">
+              Room Code
+            </p>
+            <p className="text-xl font-bold text-[var(--primary)] uppercase">
+              {room?.room_code}
+            </p>
           </div>
+          <button
+            onClick={handleShareInvite}
+            className="flex items-center  px-5  bg-[var(--primary)] text-white rounded-full hover:bg-emerald-600 transition-colors"
+            title="Share invitation link"
+          >
+            <PiShareNetworkDuotone size={20} />
+          </button>
         </div>
       </div>
 
@@ -179,23 +162,23 @@ export default function RoomDetails() {
               style={{ animationDelay: `${index * 0.05}s` }}
             >
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-semibold">
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
                     {member.user?.full_name?.charAt(0).toUpperCase()}
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="font-medium text-slate-900 flex items-center gap-2">
                       {member.user?.full_name}
                       {member.role === "teacher" && (
                         <PiCrownDuotone size={16} className="text-amber-500" />
                       )}
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs truncate text-slate-500">
                       {member.user?.email}
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex-shrink-0">
                   <span
                     className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
                       member.role === "teacher"
