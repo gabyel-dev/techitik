@@ -2,7 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/sprites/pose_4.png" />
+    <link rel="icon" type="image/png" href="/app_logo.png" />
+    <link rel="apple-touch-icon" href="/app_logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Primary Meta Tags -->
@@ -36,7 +37,7 @@
       property="og:description"
       content="Create engaging quizzes, manage classrooms, and track student progress with TechItik."
     />
-    <meta property="og:image" content="https://techitik.com/og-image.png" />
+    <meta property="og:image" content="https://techitik.com/app_logo.png" />
     <meta property="og:site_name" content="TechItik" />
 
     <!-- Twitter -->
@@ -52,7 +53,7 @@
     />
     <meta
       property="twitter:image"
-      content="https://techitik.com/twitter-image.png"
+      content="https://techitik.com/app_logo.png"
     />
 
     <!-- Additional Meta Tags -->
@@ -64,9 +65,15 @@
     />
     <meta name="format-detection" content="telephone=no" />
 
-    <!-- Preconnect to external domains -->
+    <!-- Preconnect / DNS prefetch -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://www.googleapis.com" />
+    <link rel="dns-prefetch" href="https://accounts.google.com" />
+
+    <!-- Preload critical assets -->
+    <link rel="preload" as="image" href="/bg.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/app_logo.png" />
 
     <!-- Structured Data -->
     <script type="application/ld+json">
