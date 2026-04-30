@@ -49,10 +49,10 @@ export default function Sidebar() {
       <aside
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`__side_bar__  flex-col items-start gap-0 justify-between bg-white   border-r-1 border-emerald-700/40 transition-all duration-300 z-[46] ${
+        className={`__side_bar__ flex flex-col items-start gap-0 justify-between bg-white border-r-1 border-emerald-700/40 transition-all duration-300 z-[46] fixed lg:sticky inset-y-0 left-0 ${
           isOpen
-            ? "flex fixed lg:sticky inset-y-0 left-0 w-[80%] lg:w-80"
-            : "hidden lg:flex lg:sticky w-20"
+            ? "translate-x-0 w-[80%] lg:w-80"
+            : "-translate-x-full lg:translate-x-0 lg:w-20"
         }`}
         style={{ height: "100vh" }}
       >
