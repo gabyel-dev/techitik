@@ -22,11 +22,19 @@ export default function StudentQuizTaking() {
   const [submitting, setSubmitting] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [quizClosed, setQuizClosed] = useState(false);
   const saveTimeoutRef = useRef({});
   const lastViolationRef = useRef(0);
 
   useEffect(() => {
     initializeQuiz();
+    
+    // Poll quiz status every 3 seconds
+    const statusInterval = setInterval(() => {
+      checkQuizStatus();
+    }, 3000);
+    
+    return () => clearInterval(statusInterval);
   }, [quizId]);
 
   useEffect(() => {
@@ -77,6 +85,14 @@ export default function StudentQuizTaking() {
 
       setQuiz(quizRes.data);
 
+      // Check if quiz is closed
+      if (!quizRes.data.is_open) {
+        setQuizClosed(true);
+        toast.error("This quiz is currently closed");
+        navigate(`/dashboard/s/${user.id}/room/${quizRes.data.room_id}`);
+        return;
+      }
+
       if (attemptRes.data) {
         // Check if already submitted
         if (attemptRes.data.status === 'submitted') {
@@ -103,6 +119,35 @@ export default function StudentQuizTaking() {
       navigate(-1);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkQuizStatus = async () => {
+    if (!quizId || quizClosed) return;
+    
+    try {
+      const quizRes = await GetQuizDetails(quizId);
+      
+      if (!quizRes.data.is_open) {
+        setQuizClosed(true);
+        toast.error("Quiz has been closed by the teacher", { duration: 5000 });
+        
+        // Auto-submit if there's an active attempt
+        if (attempt?.id && attempt.status === 'in_progress') {
+          try {
+            await SubmitAttempt(attempt.id);
+            toast.success("Your answers have been auto-submitted");
+          } catch (err) {
+            console.error("Auto-submit failed:", err);
+          }
+        }
+        
+        setTimeout(() => {
+          navigate(`/dashboard/s/${user.id}/room/${quizRes.data.room_id}`);
+        }, 2000);
+      }
+    } catch (err) {
+      console.error("Failed to check quiz status:", err);
     }
   };
 
@@ -134,7 +179,7 @@ export default function StudentQuizTaking() {
   };
 
   const handleAnswerChange = useCallback((questionId, value, questionType) => {
-    if (!attempt?.id) return;
+    if (!attempt?.id || quizClosed) return;
 
     setAnswers((prev) => {
       const newAnswers = { ...prev };
@@ -169,8 +214,8 @@ export default function StudentQuizTaking() {
   }, [attempt]);
 
   const saveAnswerToServer = async (questionId) => {
-    if (!attempt?.id) {
-      console.error("No attempt available to save answer");
+    if (!attempt?.id || quizClosed) {
+      console.error("Cannot save answer - quiz closed or no attempt");
       return;
     }
 
@@ -192,6 +237,11 @@ export default function StudentQuizTaking() {
   };
 
   const handleSubmit = async () => {
+    if (quizClosed) {
+      toast.error("Quiz is closed");
+      return;
+    }
+    
     setShowSubmitModal(false);
     
     try {
@@ -227,6 +277,18 @@ export default function StudentQuizTaking() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      {quizClosed && (
+        <div className="fixed top-0 left-0 right-0 z-50 p-4 bg-red-500 text-white">
+          <div className="max-w-5xl mx-auto flex items-center gap-3">
+            <PiWarningDuotone size={24} />
+            <div className="flex-1">
+              <p className="font-semibold">Quiz Closed</p>
+              <p className="text-sm">This quiz has been closed by the teacher. Redirecting...</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showSubmitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl">
@@ -331,6 +393,7 @@ export default function StudentQuizTaking() {
                         name={`question-${question.id}`}
                         checked={answers[question.id]?.selected_choice_ids?.includes(choice.id)}
                         onChange={() => handleAnswerChange(question.id, choice.id, "multiple_choice")}
+                        disabled={quizClosed}
                         className="w-4 h-4 text-emerald-600"
                       />
                       <span className="text-slate-700">{choice.choice_text}</span>
@@ -350,6 +413,7 @@ export default function StudentQuizTaking() {
                         type="checkbox"
                         checked={answers[question.id]?.selected_choice_ids?.includes(choice.id)}
                         onChange={() => handleAnswerChange(question.id, choice.id, "checkboxes")}
+                        disabled={quizClosed}
                         className="w-4 h-4 text-emerald-600 rounded"
                       />
                       <span className="text-slate-700">{choice.choice_text}</span>
@@ -363,8 +427,9 @@ export default function StudentQuizTaking() {
                   type="text"
                   value={answers[question.id]?.answer_text || ""}
                   onChange={(e) => handleAnswerChange(question.id, e.target.value, "short_answer")}
+                  disabled={quizClosed}
                   placeholder="Type your answer here"
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 disabled:bg-slate-100 disabled:cursor-not-allowed"
                 />
               )}
 
@@ -372,9 +437,10 @@ export default function StudentQuizTaking() {
                 <textarea
                   value={answers[question.id]?.answer_text || ""}
                   onChange={(e) => handleAnswerChange(question.id, e.target.value, "paragraph")}
+                  disabled={quizClosed}
                   placeholder="Type your answer here"
                   rows={5}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 resize-none"
+                  className="w-full px-4 py-3 border border-slate-200 rounded-lg outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 resize-none disabled:bg-slate-100 disabled:cursor-not-allowed"
                 />
               )}
             </div>
@@ -384,10 +450,10 @@ export default function StudentQuizTaking() {
         <div className="mt-8 flex justify-end">
           <button
             onClick={() => setShowSubmitModal(true)}
-            disabled={submitting}
+            disabled={submitting || quizClosed}
             className="px-8 py-3 bg-emerald-500 text-white rounded-lg font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Submit Quiz
+            {quizClosed ? "Quiz Closed" : "Submit Quiz"}
           </button>
         </div>
       </div>

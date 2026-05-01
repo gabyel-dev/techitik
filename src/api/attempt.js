@@ -65,3 +65,27 @@ export const ResumeAttempt = async (attemptId) => {
   const response = await api.post(`/attempt/${attemptId}/resume`);
   return response.data;
 };
+
+// Get Student Responses (Teacher)
+export const GetStudentResponses = async (attemptId) => {
+  const response = await api.get(`/attempt/${attemptId}/responses`);
+  return response.data;
+};
+
+// Manual Score Override (Teacher)
+export const OverrideScore = async (responseId, points) => {
+  const response = await api.put(`/attempt/response/${responseId}/override`, { points });
+  return response.data;
+};
+
+// Get Quiz Analytics
+export const GetQuizAnalytics = async (quizId) => {
+  const response = await api.get(`/attempt/${quizId}/analytics`);
+  return response.data;
+};
+
+// Get Room Analytics
+export const GetRoomAnalytics = async (roomId) => {
+  const response = await api.get(`/attempt/room/${roomId}/analytics`);
+  return response.data;
+};

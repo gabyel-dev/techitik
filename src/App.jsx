@@ -7,6 +7,7 @@ import TeacherDashboardContent from "./pages/role/teacher/TeacherDashboardConten
 import TeacherQuizzes from "./pages/role/teacher/TeacherQuizzes.jsx";
 import TeacherStudents from "./pages/role/teacher/TeacherStudents.jsx";
 import TeacherSettings from "./pages/role/teacher/TeacherSettings.jsx";
+import ArchivedQuizzes from "./pages/role/teacher/ArchivedQuizzes.jsx";
 import StudentLayout from "./pages/role/student/StudentLayout.jsx";
 import StudentClasses from "./pages/role/student/StudentClasses.jsx";
 import StudentAchievements from "./pages/role/student/StudentAchievements.jsx";
@@ -16,8 +17,10 @@ import RoomInvite from "./pages/RoomInvite.jsx";
 import StudentDashboard from "./pages/role/student/dashboard.jsx";
 import QuizBuilder from "./components/QuizBuilder/QuizBuilder.jsx";
 import StudentQuizTaking from "./components/Quiz/StudentQuizTaking.jsx";
-import TeacherSubmissions from "./components/Quiz/TeacherSubmissions.jsx";
+import TeacherSubmissionsEnhanced from "./components/Quiz/TeacherSubmissionsEnhanced.jsx";
 import StudentScoreView from "./components/Quiz/StudentScoreView.jsx";
+import QuizAnalytics from "./components/Quiz/QuizAnalytics.jsx";
+import RoomAnalytics from "./components/Quiz/RoomAnalytics.jsx";
 
 const App = () => {
   return (
@@ -75,12 +78,24 @@ const App = () => {
         >
           <Route index element={<TeacherDashboardContent />} />
           <Route path="quizzes" element={<TeacherQuizzes />} />
+          <Route path="archived" element={<ArchivedQuizzes />} />
           <Route path="students" element={<TeacherStudents />} />
           <Route path="settings" element={<TeacherSettings />} />
           <Route path="room/:roomId" element={<RoomDetails />} />
           <Route path="room/:roomId/quiz/:quizId" element={<QuizBuilder />} />
-          <Route path="room/:roomId/quiz/:quizId/submissions" element={<TeacherSubmissions />} />
+          <Route path="room/:roomId/quiz/:quizId/submissions" element={<TeacherSubmissionsEnhanced />} />
+          <Route path="room/:roomId/analytics" element={<RoomAnalytics />} />
         </Route>
+
+        {/* Standalone Analytics Routes */}
+        <Route
+          path="/quiz/:quizId/analytics"
+          element={
+            <ProtectedRoute>
+              <QuizAnalytics />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </Router>
   );

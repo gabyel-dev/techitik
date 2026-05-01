@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { GetRoomDetails } from "../api/rooms";
-import { GetRoomQuizzes, CreateQuiz } from "../api/quiz";
+import { GetRoomQuizzes, CreateQuiz, ToggleQuizStatus, ArchiveQuiz, DeleteQuiz } from "../api/quiz";
 import { useAuth } from "../context/authContext";
 import Loader from "../components/loader";
 import {
@@ -15,6 +15,13 @@ import {
   PiCheckDuotone,
   PiPlusDuotone,
   PiFileTextDuotone,
+  PiChartBarDuotone,
+  PiLockDuotone,
+  PiLockOpenDuotone,
+  PiArchiveDuotone,
+  PiTrashDuotone,
+  PiXBold,
+  PiWarningDuotone,
 } from "react-icons/pi";
 import toast from "react-hot-toast";
 
@@ -28,15 +35,26 @@ export default function RoomDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [creatingQuiz, setCreatingQuiz] = useState(false);
+  const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedQuiz, setSelectedQuiz] = useState(null);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     fetchRoomDetails();
     fetchQuizzes();
+    
+    // Poll for updates every 3 seconds
+    const interval = setInterval(() => {
+      fetchRoomDetails();
+      fetchQuizzes();
+    }, 3000);
+    
+    return () => clearInterval(interval);
   }, [roomId]);
 
   const fetchRoomDetails = async () => {
     try {
-      setLoading(true);
       const response = await GetRoomDetails(roomId);
       setRoom(response.data);
     } catch (err) {
@@ -110,6 +128,51 @@ export default function RoomDetails() {
     }
   };
 
+  const handleToggleQuizStatus = async (quiz) => {
+    try {
+      const newStatus = !quiz.is_open;
+      await ToggleQuizStatus(quiz.id, newStatus);
+      toast.success(`Quiz ${newStatus ? 'opened' : 'closed'} successfully`);
+      fetchQuizzes();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update quiz status");
+    }
+  };
+
+  const handleArchiveQuiz = async () => {
+    if (!selectedQuiz) return;
+
+    try {
+      setProcessing(true);
+      await ArchiveQuiz(selectedQuiz.id);
+      toast.success("Quiz archived successfully");
+      setShowArchiveModal(false);
+      setSelectedQuiz(null);
+      fetchQuizzes();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to archive quiz");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleDeleteQuiz = async () => {
+    if (!selectedQuiz) return;
+
+    try {
+      setProcessing(true);
+      await DeleteQuiz(selectedQuiz.id);
+      toast.success("Quiz deleted successfully");
+      setShowDeleteModal(false);
+      setSelectedQuiz(null);
+      fetchQuizzes();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to delete quiz");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -166,15 +229,25 @@ export default function RoomDetails() {
             <p className="text-xl font-bold text-[var(--primary)] uppercase">{room?.room_code}</p>
           </div>
           {room?.members?.find(m => m.user?.id === user?.id)?.role === 'teacher' && (
-            <button
-              onClick={handleCreateQuiz}
-              disabled={creatingQuiz}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Create quiz for students"
-            >
-              <PiPlusDuotone size={20} />
-              <span className="text-sm font-medium">{creatingQuiz ? "Creating..." : "Create Quiz"}</span>
-            </button>
+            <>
+              <button
+                onClick={() => navigate(`/dashboard/t/${user.id}/room/${roomId}/analytics`)}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors"
+                title="View room analytics"
+              >
+                <PiChartBarDuotone size={20} />
+                <span className="text-sm font-medium">Analytics</span>
+              </button>
+              <button
+                onClick={handleCreateQuiz}
+                disabled={creatingQuiz}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Create quiz for students"
+              >
+                <PiPlusDuotone size={20} />
+                <span className="text-sm font-medium">{creatingQuiz ? "Creating..." : "Create Quiz"}</span>
+              </button>
+            </>
           )}
           <button
             onClick={handleShareInvite}
@@ -217,7 +290,25 @@ export default function RoomDetails() {
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{quiz.title}</h3>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{quiz.title}</h3>
+                            {user.role === 'teacher' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleQuizStatus(quiz);
+                                }}
+                                className={`p-1 rounded transition-colors ${
+                                  quiz.is_open
+                                    ? 'text-emerald-600 hover:bg-emerald-100'
+                                    : 'text-slate-400 hover:bg-slate-100'
+                                }`}
+                                title={quiz.is_open ? 'Quiz is open' : 'Quiz is closed'}
+                              >
+                                {quiz.is_open ? <PiLockOpenDuotone size={18} /> : <PiLockDuotone size={18} />}
+                              </button>
+                            )}
+                          </div>
                           {quiz.description && (
                             <p className="text-sm text-slate-500 mt-1">{quiz.description}</p>
                           )}
@@ -227,13 +318,24 @@ export default function RoomDetails() {
                           </div>
                         </div>
                         <div className="flex flex-col items-end gap-2">
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            quiz.is_published
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-slate-100 text-slate-600"
-                          }`}>
-                            {quiz.is_published ? "Published" : "Draft"}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                              quiz.is_published
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-slate-100 text-slate-600"
+                            }`}>
+                              {quiz.is_published ? "Published" : "Draft"}
+                            </span>
+                            {user.role === 'teacher' && (
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                quiz.is_open
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-amber-100 text-amber-700"
+                              }`}>
+                                {quiz.is_open ? "Open" : "Closed"}
+                              </span>
+                            )}
+                          </div>
                           {user.role === 'teacher' ? (
                             <div className="flex gap-2">
                               <button
@@ -254,8 +356,30 @@ export default function RoomDetails() {
                               >
                                 Submissions
                               </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedQuiz(quiz);
+                                  setShowArchiveModal(true);
+                                }}
+                                className="px-3 py-1 text-xs bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
+                                title="Archive quiz"
+                              >
+                                <PiArchiveDuotone size={14} />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedQuiz(quiz);
+                                  setShowDeleteModal(true);
+                                }}
+                                className="px-3 py-1 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                                title="Delete quiz"
+                              >
+                                <PiTrashDuotone size={14} />
+                              </button>
                             </div>
-                          ) : quiz.is_published ? (
+                          ) : quiz.is_published && quiz.is_open ? (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -265,6 +389,10 @@ export default function RoomDetails() {
                             >
                               Take Quiz
                             </button>
+                          ) : quiz.is_published && !quiz.is_open ? (
+                            <span className="px-3 py-1 text-xs bg-slate-100 text-slate-500 rounded-lg">
+                              Closed
+                            </span>
                           ) : null}
                         </div>
                       </div>
@@ -321,6 +449,94 @@ export default function RoomDetails() {
           </div>
         </div>
       </div>
+
+      {/* Archive Confirmation Modal */}
+      {showArchiveModal && selectedQuiz && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <PiArchiveDuotone size={24} className="text-amber-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">Archive Quiz?</h3>
+              </div>
+              <button
+                onClick={() => setShowArchiveModal(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <PiXBold size={20} />
+              </button>
+            </div>
+            <p className="text-slate-600 mb-6">
+              Are you sure you want to archive <span className="font-semibold">"{selectedQuiz.title}"</span>? 
+              It will be hidden from students and moved to the archived quizzes page.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowArchiveModal(false)}
+                disabled={processing}
+                className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleArchiveQuiz}
+                disabled={processing}
+                className="flex-1 px-4 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors disabled:opacity-50"
+              >
+                {processing ? "Archiving..." : "Archive"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && selectedQuiz && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <PiWarningDuotone size={24} className="text-red-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">Delete Quiz?</h3>
+              </div>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <PiXBold size={20} />
+              </button>
+            </div>
+            <p className="text-slate-600 mb-2">
+              Are you sure you want to permanently delete <span className="font-semibold">"{selectedQuiz.title}"</span>?
+            </p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
+              <p className="text-sm text-red-800 font-medium">
+                ⚠️ This action cannot be undone. All questions, submissions, and student data will be permanently deleted.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={processing}
+                className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteQuiz}
+                disabled={processing}
+                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+              >
+                {processing ? "Deleting..." : "Delete Permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

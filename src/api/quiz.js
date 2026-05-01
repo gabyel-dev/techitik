@@ -71,3 +71,27 @@ export const DeleteChoice = async (choiceId) => {
   const response = await api.delete(`/quiz/choices/${choiceId}`);
   return response.data;
 };
+
+// Toggle Quiz Status (Open/Close)
+export const ToggleQuizStatus = async (quizId, isOpen) => {
+  const response = await api.put(`/quiz/${quizId}/toggle-status`, { isOpen });
+  return response.data;
+};
+
+// Archive Quiz
+export const ArchiveQuiz = async (quizId) => {
+  const response = await api.put(`/quiz/${quizId}/archive`);
+  return response.data;
+};
+
+// Unarchive Quiz
+export const UnarchiveQuiz = async (quizId) => {
+  const response = await api.put(`/quiz/${quizId}/unarchive`);
+  return response.data;
+};
+
+// Get Archived Quizzes
+export const GetArchivedQuizzes = async () => {
+  const response = await api.get('/quiz/teacher/archived');
+  return response.data;
+};

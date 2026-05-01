@@ -1,5 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { Dashboard, FolderOpen, IdCard } from "@duo-icons/react";
+import { PiArchiveDuotone } from "react-icons/pi";
 import { GetRoomLists } from "./TeacherDashboard/RoomLists";
 import SharedSidebar from "./shared/SharedSidebar";
 
@@ -18,6 +19,12 @@ export default function Sidebar() {
       icon: FolderOpen,
       path: "quizzes",
       isActive: location.pathname.includes("/quizzes"),
+    },
+    {
+      name: "Archived",
+      icon: PiArchiveDuotone,
+      path: "archived",
+      isActive: location.pathname.includes("/archived"),
     },
     {
       name: "Students",
