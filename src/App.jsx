@@ -23,6 +23,7 @@ import StudentScoreView from "./components/Quiz/StudentScoreView.jsx";
 import QuizAnalytics from "./components/Quiz/QuizAnalytics.jsx";
 import RoomAnalytics from "./components/Quiz/RoomAnalytics.jsx";
 import QuizRankings from "./pages/QuizRankings.jsx";
+import QuizDetails from "./pages/QuizDetails.jsx";
 import RoomWrapper from "./components/RoomWrapper.jsx";
 
 const App = () => {
@@ -39,13 +40,6 @@ const App = () => {
         />
 
         <Route
-          path="/dashboard/t/:id/room/:roomId/quiz/:quizId"
-          element={<QuizBuilder />}
-        />
-
-        <Route path="room/:roomId/create-quiz" element={<QuizBuilder />} />
-
-        <Route
           path="/dashboard/s/:id"
           element={
             <ProtectedRoute>
@@ -57,7 +51,7 @@ const App = () => {
           <Route path="classes" element={<StudentClasses />} />
           <Route path="achievements" element={<StudentAchievements />} />
           <Route path="settings" element={<StudentSettings />} />
-          
+
           {/* Room routes wrapped with RoomProvider */}
           <Route path="room/:roomId" element={<RoomWrapper />}>
             <Route index element={<RoomDetails />} />
@@ -90,14 +84,18 @@ const App = () => {
           <Route path="archived-rooms" element={<ArchivedRooms />} />
           <Route path="students" element={<TeacherStudents />} />
           <Route path="settings" element={<TeacherSettings />} />
-          
+
           {/* Room routes wrapped with RoomProvider */}
           <Route path="room/:roomId" element={<RoomWrapper />}>
             <Route index element={<RoomDetails />} />
             <Route path="quiz/:quizId" element={<QuizBuilder />} />
-            <Route path="quiz/:quizId/submissions" element={<TeacherSubmissionsEnhanced />} />
+            <Route
+              path="quiz/:quizId/submissions"
+              element={<TeacherSubmissionsEnhanced />}
+            />
             <Route path="analytics" element={<RoomAnalytics />} />
             <Route path="quiz/:quizId/rankings" element={<QuizRankings />} />
+            <Route path="quiz/:quizId/details" element={<QuizDetails />} />
           </Route>
         </Route>
 

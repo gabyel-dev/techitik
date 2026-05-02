@@ -53,6 +53,7 @@ import { Link } from "react-router-dom";
 export default function RoomDetails() {
   const navigate = useNavigate();
   const location = useLocation();
+
   const { roomId } = useParams();
   const { user } = useAuth();
   const [creatingQuiz, setCreatingQuiz] = useState(false);
@@ -431,7 +432,7 @@ export default function RoomDetails() {
             <span className="text-[var(--primary)] text-xl">/</span>
           </Link>
           <p className="flex items-center text-[var(--primary)]  text-sm">
-            &nbsp;&nbsp;room - {room?.room_code}
+            &nbsp;&nbsp;{room?.room_code?.toUpperCase()}
           </p>
         </div>
 
@@ -659,255 +660,145 @@ export default function RoomDetails() {
                 ) : (
                   <div className="space-y-3">
                     {quizzes?.map((quiz) => (
-                      <div
-                        key={quiz.id}
-                        className="group p-4 sm:p-5 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-sm bg-white hover:bg-blue-50/30 transition-all"
-                      >
-                        {/* Quiz Header */}
-                        <div className="flex items-start justify-between gap-3 mb-3">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1.5">
-                              <h3 className="text-base sm:text-lg font-semibold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
-                                {quiz.title}
-                              </h3>
-                              {isTeacher && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleToggleQuizStatus(quiz);
-                                  }}
-                                  className={`flex-shrink-0 p-1.5 rounded-lg transition-all min-h-[36px] min-w-[36px] flex items-center justify-center ${
-                                    quiz.is_open
-                                      ? "text-emerald-600 hover:bg-emerald-100"
-                                      : "text-slate-400 hover:bg-slate-100"
-                                  }`}
-                                  title={
-                                    quiz.is_open
-                                      ? "Quiz is open"
-                                      : "Quiz is closed"
-                                  }
-                                >
-                                  {quiz.is_open ? (
-                                    <PiLockOpenDuotone size={20} />
-                                  ) : (
-                                    <PiLockDuotone size={20} />
-                                  )}
-                                </button>
-                              )}
-                            </div>
-                            {quiz.description && (
-                              <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 mb-2">
-                                {quiz.description}
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Status Badges */}
-                          <div className="flex gap-1.5 flex-shrink-0">
-                            {isTeacher && (
-                              <>
-                                <span
-                                  className={`px-2.5 py-1 rounded-full text-xs font-semibold text-center whitespace-nowrap ${
-                                    quiz.is_published
-                                      ? "bg-emerald-100 text-emerald-700"
-                                      : "bg-slate-100 text-slate-600"
-                                  }`}
-                                >
-                                  {user.role === "teacher"
-                                    ? quiz.is_published
-                                      ? "Published"
-                                      : "Draft"
-                                    : ""}
-                                </span>
-                                <span
-                                  className={`px-2.5 py-1 rounded-full text-xs font-semibold text-center whitespace-nowrap ${
-                                    quiz.is_open
-                                      ? "bg-blue-100 text-blue-700"
-                                      : "bg-amber-100 text-amber-700"
-                                  }`}
-                                >
-                                  {quiz.is_open ? "Open" : "Closed"}
-                                </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Quiz Footer */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                          {/* Metadata */}
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-                            <span className="font-medium">
-                              Uploaded {formatDate(quiz.created_at)}
-                            </span>
-                            {quiz.due_date && (
-                              <span className="font-medium">
-                                Due {formatDate(quiz.due_date)}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Action Buttons */}
-                          {isTeacher ? (
-                            <div className="relative">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOpenDropdown(
-                                    openDropdown === quiz.id ? null : quiz.id,
-                                  );
-                                }}
-                                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 active:scale-95 transition-all min-h-[40px]"
-                              >
-                                <PiDotsThreeVerticalBold size={16} />
-                              </button>
-
-                              {/* Dropdown Menu */}
-                              {openDropdown === quiz.id && (
-                                <>
-                                  <div
-                                    className="fixed inset-0 z-10"
+                      <Link to={`quiz/${quiz.id}/details`}>
+                        <div
+                          key={quiz.id}
+                          className="group p-4 sm:p-5 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-sm bg-white hover:bg-blue-50/30 transition-all"
+                        >
+                          {/* Quiz Header */}
+                          <div className="flex items-start justify-between gap-3 mb-3">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <h3 className="text-base sm:text-lg font-semibold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
+                                  {quiz.title}
+                                </h3>
+                                {isTeacher && (
+                                  <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      setOpenDropdown(null);
+                                      handleToggleQuizStatus(quiz);
                                     }}
-                                  />
-                                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-100 animate-fadeIn">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setOpenDropdown(null);
-                                        navigate(
-                                          `/dashboard/t/${user.id}/room/${roomId}/quiz/${quiz.id}`,
-                                        );
-                                      }}
-                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 transition-colors"
-                                    >
-                                      <PiPencilSimpleDuotone
-                                        size={18}
-                                        className="text-blue-600"
-                                      />
-                                      <span className="font-medium">
-                                        Edit Quiz
-                                      </span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setOpenDropdown(null);
-                                        navigate(
-                                          `/dashboard/t/${user.id}/room/${roomId}/quiz/${quiz.id}/submissions`,
-                                        );
-                                      }}
-                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-emerald-50 transition-colors"
-                                    >
-                                      <PiClipboardDuotone
-                                        size={18}
-                                        className="text-emerald-600"
-                                      />
-                                      <span className="font-medium">
-                                        View Submissions
-                                      </span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setOpenDropdown(null);
-                                        navigate(
-                                          `/dashboard/t/${user.id}/room/${roomId}/quiz/${quiz.id}/rankings`,
-                                        );
-                                      }}
-                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-amber-50 transition-colors"
-                                    >
-                                      <PiTrophyDuotone
-                                        size={18}
-                                        className="text-amber-600"
-                                      />
-                                      <span className="font-medium">
-                                        View Rankings
-                                      </span>
-                                    </button>
-                                    <div className="my-1 border-t border-slate-100" />
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setOpenDropdown(null);
-                                        setSelectedQuiz(quiz);
-                                        setShowArchiveModal(true);
-                                      }}
-                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
-                                    >
-                                      <PiArchiveDuotone
-                                        size={18}
-                                        className="text-slate-600"
-                                      />
-                                      <span className="font-medium">
-                                        Archive Quiz
-                                      </span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setOpenDropdown(null);
-                                        setSelectedQuiz(quiz);
-                                        setShowDeleteModal(true);
-                                      }}
-                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                                    >
-                                      <PiTrashDuotone size={18} />
-                                      <span className="font-medium">
-                                        Delete Quiz
-                                      </span>
-                                    </button>
-                                  </div>
+                                    className={`flex-shrink-0 p-1.5 rounded-lg transition-all min-h-[36px] min-w-[36px] flex items-center justify-center ${
+                                      quiz.is_open
+                                        ? "text-emerald-600 hover:bg-emerald-100"
+                                        : "text-slate-400 hover:bg-slate-100"
+                                    }`}
+                                    title={
+                                      quiz.is_open
+                                        ? "Quiz is open"
+                                        : "Quiz is closed"
+                                    }
+                                  >
+                                    {quiz.is_open ? (
+                                      <PiLockOpenDuotone size={20} />
+                                    ) : (
+                                      <PiLockDuotone size={20} />
+                                    )}
+                                  </button>
+                                )}
+                              </div>
+                              {quiz.description && (
+                                <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 mb-2">
+                                  {quiz.description}
+                                </p>
+                              )}
+                            </div>
+
+                            {/* Status Badges */}
+                            <div className="flex gap-1.5 flex-shrink-0">
+                              {isTeacher && (
+                                <>
+                                  <span
+                                    className={`px-2.5 py-1 rounded-full text-xs font-semibold text-center whitespace-nowrap ${
+                                      quiz.is_published
+                                        ? "bg-emerald-100 text-emerald-700"
+                                        : "bg-slate-100 text-slate-600"
+                                    }`}
+                                  >
+                                    {user.role === "teacher"
+                                      ? quiz.is_published
+                                        ? "Published"
+                                        : "Draft"
+                                      : ""}
+                                  </span>
+                                  <span
+                                    className={`px-2.5 py-1 rounded-full text-xs font-semibold text-center whitespace-nowrap ${
+                                      quiz.is_open
+                                        ? "bg-blue-100 text-blue-700"
+                                        : "bg-amber-100 text-amber-700"
+                                    }`}
+                                  >
+                                    {quiz.is_open ? "Open" : "Closed"}
+                                  </span>
                                 </>
                               )}
                             </div>
-                          ) : quiz.is_published && quiz.is_open ? (
-                            <div className="flex flex-wrap gap-2">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(
-                                    `/dashboard/s/${user.id}/room/${roomId}/quiz/${quiz.id}/take`,
-                                  );
-                                }}
-                                className="px-4 py-2 text-sm font-semibold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 active:scale-95 transition-all min-h-[40px]"
-                              >
-                                Take Quiz
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(
-                                    `/dashboard/s/${user.id}/room/${roomId}/quiz/${quiz.id}/rankings`,
-                                  );
-                                }}
-                                className="px-4 py-2 text-sm font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 active:scale-95 transition-all min-h-[40px]"
-                              >
-                                Rankings
-                              </button>
-                            </div>
-                          ) : quiz.is_published && !quiz.is_open ? (
-                            <div className="flex flex-wrap gap-2">
-                              <span className="px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-500 rounded-lg">
-                                Closed
+                          </div>
+
+                          {/* Quiz Footer */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                            {/* Metadata */}
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                              <span className="font-medium">
+                                Uploaded {formatDate(quiz.created_at)}
                               </span>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(
-                                    `/dashboard/s/${user.id}/room/${roomId}/quiz/${quiz.id}/rankings`,
-                                  );
-                                }}
-                                className="px-3 py-1.5 text-xs font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 active:scale-95 transition-all min-h-[36px]"
-                              >
-                                Rankings
-                              </button>
+                              {quiz.due_date && (
+                                <span className="font-medium">
+                                  Due {formatDate(quiz.due_date)}
+                                </span>
+                              )}
                             </div>
-                          ) : null}
+
+                            {/* Action Buttons */}
+                            {quiz.is_published &&
+                            quiz.is_open &&
+                            user.role === "student" ? (
+                              <div className="flex flex-wrap gap-2">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(
+                                      `/dashboard/s/${user.id}/room/${roomId}/quiz/${quiz.id}/take`,
+                                    );
+                                  }}
+                                  className="px-4 py-2 text-sm font-semibold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 active:scale-95 transition-all min-h-[40px]"
+                                >
+                                  Take Quiz
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(
+                                      `/dashboard/s/${user.id}/room/${roomId}/quiz/${quiz.id}/rankings`,
+                                    );
+                                  }}
+                                  className="px-4 py-2 text-sm font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 active:scale-95 transition-all min-h-[40px]"
+                                >
+                                  Rankings
+                                </button>
+                              </div>
+                            ) : quiz.is_published &&
+                              !quiz.is_open & (user.role === "student") ? (
+                              <div className="flex flex-wrap gap-2">
+                                <span className="px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-500 rounded-lg">
+                                  Closed
+                                </span>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    navigate(
+                                      `/dashboard/s/${user.id}/room/${roomId}/quiz/${quiz.id}/rankings`,
+                                    );
+                                  }}
+                                  className="px-3 py-1.5 text-xs font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 active:scale-95 transition-all min-h-[36px]"
+                                >
+                                  Rankings
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}

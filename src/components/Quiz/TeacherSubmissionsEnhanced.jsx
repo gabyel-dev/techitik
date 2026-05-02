@@ -179,7 +179,7 @@ export default function TeacherSubmissions() {
       <div className="max-w-7xl mx-auto">
         <div className="flex w-fit pb-5">
           <Link
-            to={`/dashboard/t/${user.id}/room/${room.id}`}
+            to={`/dashboard/t/${user.id}/room/${room.id}/quiz/${quizId}/details`}
             replace={true}
             className="flex items-center gap-2 "
           >
