@@ -1,11 +1,10 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { verifyStudentAccess } from "../../../api/auth";
-import { JoinRoom } from "../../../api/rooms";
+import { JoinRoom, GetStudentRooms } from "../../../api/rooms";
 import { useAuth } from "../../../context/authContext";
 import Loader from "../../../components/loader";
-import StudentSidebar from "../../../components/StudentSidebar";
-import StudentHeader from "../../../components/StudentDashboard/StudentHeader";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
 import {
   PiBooksDuotone,
   PiPlusDuotone,
@@ -24,6 +23,8 @@ export default function StudentDashboard() {
   const [roomCode, setRoomCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [rooms, setRooms] = useState([]);
+  const [stats, setStats] = useState(null);
   const hasVerified = useRef(false);
 
   useEffect(() => {
@@ -34,9 +35,32 @@ export default function StudentDashboard() {
     }
     hasVerified.current = true;
     verifyStudentAccess(id)
-      .then(() => setVerifying(false))
+      .then(() => {
+        setVerifying(false);
+        fetchDashboardData();
+      })
       .catch(() => navigate("/", { replace: true }));
   }, [isLoading, user, id]);
+
+  const fetchDashboardData = async () => {
+    try {
+      const roomsResponse = await GetStudentRooms();
+      const roomsData = roomsResponse.data || [];
+      setRooms(roomsData);
+
+      const totalQuizzes = roomsData.reduce((sum, room) => sum + (room.quiz_count || 0), 0);
+      const completedQuizzes = roomsData.reduce((sum, room) => sum + (room.completed_quiz_count || 0), 0);
+      const pendingQuizzes = totalQuizzes - completedQuizzes;
+
+      setStats({
+        totalClasses: roomsData.length,
+        completedQuizzes,
+        pendingQuizzes,
+      });
+    } catch (err) {
+      console.error("Failed to fetch dashboard data:", err);
+    }
+  };
 
   const handleJoinRoom = useCallback(async () => {
     if (!roomCode.trim()) {
@@ -50,9 +74,9 @@ export default function StudentDashboard() {
 
     try {
       await JoinRoom({ room_code: roomCode });
-
       toast.success("Joined room successfully!");
       setRoomCode("");
+      fetchDashboardData();
     } catch (err) {
       toast.error("Failed to join room");
       setError(err.response?.data?.message || "Failed to join room");
@@ -62,16 +86,24 @@ export default function StudentDashboard() {
     }
   }, [roomCode]);
 
+  const COLORS = ['#10b981', '#3b82f6', '#f59e0b'];
+
+  const roomChartData = rooms.slice(0, 5).map(room => ({
+    name: room.name.length > 15 ? room.name.substring(0, 15) + '...' : room.name,
+    quizzes: room.quiz_count || 0,
+    completed: room.completed_quiz_count || 0,
+  }));
+
   if (isLoading || verifying) {
     return <Loader />;
   }
 
   return (
     <>
-      <div className="relative flex h-screen   w-full bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 text-slate-800 font-[var(--font-body)]">
+      <div className="relative flex h-screen w-full bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 text-slate-800 font-[var(--font-body)]">
         <main className="flex w-full flex-col ">
-          <div className="flex-1  p-3 sm:p-8">
-            <div className="mb-8 rounded-4xl md:max-h-50 max-h-40 flex  bg-[var(--primary)] py-6 px-3 text-white shadow-2xl shadow-emerald-500/40 relative">
+          <div className="flex-1 p-3 sm:p-8">
+            <div className="mb-8 rounded-4xl md:max-h-50 max-h-40 flex bg-[var(--primary)] py-6 px-3 text-white shadow-2xl shadow-emerald-500/40 relative">
               <img
                 src="/sprites/pose_4.png"
                 alt="sprites"
@@ -119,7 +151,7 @@ export default function StudentDashboard() {
             <main className="__main_container__ flex flex-col-reverse lg:flex-row gap-4 sm:gap-8 w-full relative">
               <section className="__overview__ flex-1">
                 <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-3 mb-4 sm:mb-8">
-                  <div className="rounded-2xl border border-slate-200/60 bg-white p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
+                  <div onClick={() => navigate(`/dashboard/s/${user.id}/classes`)} className="rounded-2xl border border-slate-200/60 bg-white p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 sm:gap-4">
                         <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 shadow-sm group-hover:scale-105 transition-transform">
@@ -130,7 +162,7 @@ export default function StudentDashboard() {
                             My Classes
                           </p>
                           <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">
-                            5
+                            {stats?.totalClasses || 0}
                           </p>
                         </div>
                       </div>
@@ -151,7 +183,7 @@ export default function StudentDashboard() {
                             Completed
                           </p>
                           <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">
-                            12
+                            {stats?.completedQuizzes || 0}
                           </p>
                         </div>
                       </div>
@@ -169,7 +201,7 @@ export default function StudentDashboard() {
                             Pending
                           </p>
                           <p className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">
-                            3
+                            {stats?.pendingQuizzes || 0}
                           </p>
                         </div>
                       </div>
@@ -177,27 +209,35 @@ export default function StudentDashboard() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden flex flex-col">
-                  <div className="border-b border-slate-100 px-3 sm:px-6 py-3 sm:py-5 flex items-center justify-between">
-                    <div>
+                {roomChartData.length > 0 && (
+                  <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden mb-4 sm:mb-8">
+                    <div className="border-b border-slate-100 px-3 sm:px-6 py-3 sm:py-5">
                       <h2 className="text-sm sm:text-base font-semibold text-slate-900">
-                        My Classes
+                        Quiz Progress by Class
                       </h2>
                       <p className="text-[10px] sm:text-xs text-slate-500 mt-0.5">
-                        Classes you're enrolled in
+                        Your completion status across classes
                       </p>
                     </div>
-                  </div>
-                  <div className="p-4 sm:p-6">
-                    <div className="text-center py-8 text-slate-500 text-sm">
-                      No classes yet. Join your first class!
+                    <div className="p-4 sm:p-6">
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={roomChartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                          <YAxis tick={{ fontSize: 12 }} />
+                          <Tooltip />
+                          <Legend />
+                          <Bar dataKey="completed" fill="#10b981" name="Completed" radius={[8, 8, 0, 0]} />
+                          <Bar dataKey="quizzes" fill="#3b82f6" name="Total Quizzes" radius={[8, 8, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
-                </div>
+                )}
               </section>
 
               <aside className="__join_room__ w-full lg:w-80">
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4 sm:p-6 flex flex-col">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-4 sm:p-6 flex flex-col sticky top-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
                       <PiPlusDuotone className="text-white" size={20} />

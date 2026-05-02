@@ -1,18 +1,28 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
-import { GetRoomDetails } from "../api/rooms";
-import { GetRoomQuizzes, CreateQuiz, ToggleQuizStatus, ArchiveQuiz, DeleteQuiz } from "../api/quiz";
+import {
+  GetRoomDetails,
+  GetRoomRankings,
+  ArchiveRoom,
+  DeleteRoom,
+} from "../api/rooms";
+import {
+  GetRoomQuizzes,
+  CreateQuiz,
+  ToggleQuizStatus,
+  ArchiveQuiz,
+  DeleteQuiz,
+} from "../api/quiz";
 import { useAuth } from "../context/authContext";
 import Loader from "../components/loader";
+import { usePolling, useDebounce } from "../hooks/useOptimizedFetch";
 import {
   PiUsersDuotone,
   PiBookOpenDuotone,
   PiClipboardTextDuotone,
   PiCalendarDuotone,
-  PiArrowLeftDuotone,
   PiCrownDuotone,
   PiShareNetworkDuotone,
-  PiCheckDuotone,
   PiPlusDuotone,
   PiFileTextDuotone,
   PiChartBarDuotone,
@@ -22,6 +32,13 @@ import {
   PiTrashDuotone,
   PiXBold,
   PiWarningDuotone,
+  PiTrophyDuotone,
+  PiMedalDuotone,
+  PiDotsThreeVerticalBold,
+  PiPencilSimpleDuotone,
+  PiClipboardDuotone,
+  PiGearDuotone,
+  PiUserDuotone,
 } from "react-icons/pi";
 import toast from "react-hot-toast";
 
@@ -30,58 +47,75 @@ export default function RoomDetails() {
   const location = useLocation();
   const { roomId } = useParams();
   const { user } = useAuth();
-  const [room, setRoom] = useState(null);
-  const [quizzes, setQuizzes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showRoomArchiveModal, setShowRoomArchiveModal] = useState(false);
+  const [showRoomDeleteModal, setShowRoomDeleteModal] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [processing, setProcessing] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
+  const [showRoomSettings, setShowRoomSettings] = useState(false);
+  const mountedRef = useRef(true);
 
-  useEffect(() => {
-    fetchRoomDetails();
-    fetchQuizzes();
-    
-    // Poll for updates every 3 seconds
-    const interval = setInterval(() => {
-      fetchRoomDetails();
-      fetchQuizzes();
-    }, 3000);
-    
-    return () => clearInterval(interval);
+  // Optimized data fetching with polling (only when tab is visible)
+  const fetchRoomData = useCallback(async () => {
+    const response = await GetRoomDetails(roomId);
+    return response.data;
   }, [roomId]);
 
-  const fetchRoomDetails = async () => {
-    try {
-      const response = await GetRoomDetails(roomId);
-      setRoom(response.data);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to load room details");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const fetchQuizzesData = useCallback(async () => {
+    const response = await GetRoomQuizzes(roomId);
+    return response.data || [];
+  }, [roomId]);
 
-  const fetchQuizzes = async () => {
-    try {
-      const response = await GetRoomQuizzes(roomId);
-      setQuizzes(response.data || []);
-    } catch (err) {
-      console.error("Failed to fetch quizzes:", err);
-    }
-  };
+  const fetchRankingsData = useCallback(async () => {
+    const response = await GetRoomRankings(roomId);
+    return response.data || [];
+  }, [roomId]);
 
-  const formatDate = (dateString) => {
+  // Use optimized polling hook (5 seconds interval, pauses when tab not visible)
+  const {
+    data: room,
+    loading: roomLoading,
+    error,
+    retry,
+  } = usePolling(fetchRoomData, 5000, [roomId]);
+  const { data: quizzes = [] } = usePolling(fetchQuizzesData, 5000, [roomId]);
+  const { data: rankings = [] } = usePolling(fetchRankingsData, 5000, [roomId]);
+
+  const loading = roomLoading;
+
+  // Memoized computed values to prevent unnecessary recalculations
+  const isTeacher = useMemo(() => {
+    return (
+      room?.members?.find((m) => m.user?.id === user?.id)?.role === "teacher"
+    );
+  }, [room?.members, user?.id]);
+
+  const currentUserRanking = useMemo(() => {
+    return rankings?.find((r) => r.user_id === user?.id);
+  }, [rankings, user?.id]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const formatDate = useCallback((dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
     });
-  };
+  }, []);
 
-  const handleCreateQuiz = async () => {
+  const handleCreateQuiz = useCallback(async () => {
+    if (!mountedRef.current) return;
+
     try {
       setCreatingQuiz(true);
       const response = await CreateQuiz({
@@ -89,27 +123,29 @@ export default function RoomDetails() {
         title: "Untitled Quiz",
         description: "",
       });
-      
+
       const quizId = response.data.id;
       const teacherId = user.id;
-      
-      // Navigate based on current path
-      if (location.pathname.includes('/dashboard/t/')) {
+
+      if (location.pathname.includes("/dashboard/t/")) {
         navigate(`/dashboard/t/${teacherId}/room/${roomId}/quiz/${quizId}`);
       } else {
         navigate(`quiz/${quizId}`);
       }
-      
-      toast.success("Quiz created successfully!");
-      fetchQuizzes(); // Refresh quiz list
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create quiz");
-    } finally {
-      setCreatingQuiz(false);
-    }
-  };
 
-  const handleShareInvite = async () => {
+      toast.success("Quiz created successfully!");
+    } catch (err) {
+      if (mountedRef.current) {
+        toast.error(err.response?.data?.message || "Failed to create quiz");
+      }
+    } finally {
+      if (mountedRef.current) {
+        setCreatingQuiz(false);
+      }
+    }
+  }, [roomId, user.id, location.pathname, navigate]);
+
+  const handleShareInvite = useCallback(async () => {
     const inviteUrl = `${window.location.origin}/invite/${room?.room_code}`;
 
     try {
@@ -126,21 +162,26 @@ export default function RoomDetails() {
     } catch (err) {
       console.error("Share failed:", err);
     }
-  };
+  }, [room?.room_code, room?.name]);
 
-  const handleToggleQuizStatus = async (quiz) => {
+  const handleToggleQuizStatus = useCallback(async (quiz) => {
+    if (!mountedRef.current) return;
+
     try {
       const newStatus = !quiz.is_open;
       await ToggleQuizStatus(quiz.id, newStatus);
-      toast.success(`Quiz ${newStatus ? 'opened' : 'closed'} successfully`);
-      fetchQuizzes();
+      toast.success(`Quiz ${newStatus ? "opened" : "closed"} successfully`);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update quiz status");
+      if (mountedRef.current) {
+        toast.error(
+          err.response?.data?.message || "Failed to update quiz status",
+        );
+      }
     }
-  };
+  }, []);
 
-  const handleArchiveQuiz = async () => {
-    if (!selectedQuiz) return;
+  const handleArchiveQuiz = useCallback(async () => {
+    if (!selectedQuiz || !mountedRef.current) return;
 
     try {
       setProcessing(true);
@@ -148,16 +189,19 @@ export default function RoomDetails() {
       toast.success("Quiz archived successfully");
       setShowArchiveModal(false);
       setSelectedQuiz(null);
-      fetchQuizzes();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to archive quiz");
+      if (mountedRef.current) {
+        toast.error(err.response?.data?.message || "Failed to archive quiz");
+      }
     } finally {
-      setProcessing(false);
+      if (mountedRef.current) {
+        setProcessing(false);
+      }
     }
-  };
+  }, [selectedQuiz]);
 
-  const handleDeleteQuiz = async () => {
-    if (!selectedQuiz) return;
+  const handleDeleteQuiz = useCallback(async () => {
+    if (!selectedQuiz || !mountedRef.current) return;
 
     try {
       setProcessing(true);
@@ -165,286 +209,821 @@ export default function RoomDetails() {
       toast.success("Quiz deleted successfully");
       setShowDeleteModal(false);
       setSelectedQuiz(null);
-      fetchQuizzes();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to delete quiz");
+      if (mountedRef.current) {
+        toast.error(err.response?.data?.message || "Failed to delete quiz");
+      }
     } finally {
-      setProcessing(false);
+      if (mountedRef.current) {
+        setProcessing(false);
+      }
     }
-  };
+  }, [selectedQuiz]);
+
+  const handleArchiveRoom = useCallback(async () => {
+    if (!mountedRef.current) return;
+
+    try {
+      setProcessing(true);
+      await ArchiveRoom(roomId);
+      toast.success("Room archived successfully");
+      setShowRoomArchiveModal(false);
+      navigate(-1);
+    } catch (err) {
+      if (mountedRef.current) {
+        toast.error(err.response?.data?.message || "Failed to archive room");
+      }
+    } finally {
+      if (mountedRef.current) {
+        setProcessing(false);
+      }
+    }
+  }, [roomId, navigate]);
+
+  const handleDeleteRoom = useCallback(async () => {
+    if (!mountedRef.current) return;
+
+    try {
+      setProcessing(true);
+      await DeleteRoom(roomId);
+      toast.success("Room moved to recycle bin");
+      setShowRoomDeleteModal(false);
+      navigate(-1);
+    } catch (err) {
+      if (mountedRef.current) {
+        toast.error(err.response?.data?.message || "Failed to delete room");
+      }
+    } finally {
+      if (mountedRef.current) {
+        setProcessing(false);
+      }
+    }
+  }, [roomId, navigate]);
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <Loader />
+      <div className="min-h-screen bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          {/* Header Skeleton */}
+          <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm mb-6 overflow-hidden animate-pulse">
+            <div className="p-5 sm:p-6 lg:p-8 border-b border-slate-100">
+              <div className="h-8 bg-slate-200 rounded-lg w-2/3 mb-4"></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                {[1, 2, 3, 4]?.map((i) => (
+                  <div key={i} className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-slate-200"></div>
+                    <div className="flex-1">
+                      <div className="h-3 bg-slate-200 rounded w-16 mb-2"></div>
+                      <div className="h-4 bg-slate-200 rounded w-24"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="p-4 sm:p-5 bg-slate-50/50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="bg-white px-4 py-3 rounded-lg border border-slate-200 w-32">
+                <div className="h-3 bg-slate-200 rounded w-16 mb-2"></div>
+                <div className="h-6 bg-slate-200 rounded w-20"></div>
+              </div>
+              <div className="flex gap-2">
+                <div className="h-11 bg-slate-200 rounded-lg w-24"></div>
+                <div className="h-11 bg-slate-200 rounded-lg w-24"></div>
+                <div className="h-11 bg-slate-200 rounded-lg w-32"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Content Grid Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Quizzes Section Skeleton */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-pulse">
+                <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-slate-200"></div>
+                    <div className="flex-1">
+                      <div className="h-5 bg-slate-200 rounded w-24 mb-2"></div>
+                      <div className="h-3 bg-slate-200 rounded w-16"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 sm:p-6 space-y-3">
+                  {[1, 2, 3]?.map((i) => (
+                    <div
+                      key={i}
+                      className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-slate-50"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <div className="h-5 bg-slate-200 rounded w-3/4 mb-2"></div>
+                          <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="h-6 w-20 bg-slate-200 rounded-full"></div>
+                          <div className="h-6 w-16 bg-slate-200 rounded-full"></div>
+                        </div>
+                      </div>
+                      <div className="pt-3 border-t border-slate-100">
+                        <div className="h-3 bg-slate-200 rounded w-32"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Leaderboard Section Skeleton */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-pulse">
+                <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-slate-200"></div>
+                    <div className="flex-1">
+                      <div className="h-5 bg-slate-200 rounded w-28 mb-2"></div>
+                      <div className="h-3 bg-slate-200 rounded w-20"></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {[1, 2, 3, 4, 5]?.map((i) => (
+                    <div key={i} className="px-5 sm:px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-slate-200"></div>
+                        <div className="flex-1">
+                          <div className="h-4 bg-slate-200 rounded w-32 mb-2"></div>
+                          <div className="h-3 bg-slate-200 rounded w-24"></div>
+                        </div>
+                        <div className="text-right">
+                          <div className="h-4 bg-slate-200 rounded w-12 mb-1"></div>
+                          <div className="h-3 bg-slate-200 rounded w-8"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex h-full items-center justify-center p-8">
-        <div className="text-center">
-          <p className="text-red-500 mb-4">{error}</p>
-          <button
-            onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-[var(--primary)] text-white rounded-lg hover:bg-emerald-600 transition-colors"
-          >
-            Go Back
-          </button>
+      <div className="flex h-full items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+            <PiWarningDuotone size={32} className="text-red-600" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 mb-2">
+            Unable to Load Room
+          </h2>
+          <p className="text-sm text-slate-600 mb-6">{error}</p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => navigate(-1)}
+              className="px-4 py-2.5 bg-slate-100 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-200 transition-colors min-h-[44px]"
+            >
+              Go Back
+            </button>
+            <button
+              onClick={retry}
+              className="px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors min-h-[44px] flex items-center gap-2"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-3 sm:p-8 animate-slideIn flex-1 min-w-0">
-      {/* Header Card */}
-      <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm mb-6 animate-fadeIn">
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-3xl truncate font-bold text-slate-900 mb-2">
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Header Section */}
+        <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm mb-6 ">
+          {/* Title & Metadata */}
+          <div className="p-5 sm:p-6 lg:p-8 border-b border-slate-100">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 leading-tight">
               {room?.name}
             </h1>
-            <div className="flex flex-wrap gap-4 text-sm text-slate-600">
-              <div className="flex items-center gap-2">
-                <PiBookOpenDuotone size={18} className="text-blue-500" />
-                <span>{room?.subject}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <PiClipboardTextDuotone size={18} className="text-emerald-500" />
-                <span>{room?.section}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <PiCalendarDuotone size={18} className="text-amber-500" />
-                <span>Created: {formatDate(room?.created_at)}</span>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div className="flex gap-3 w-full justify-end">
-          <div className="bg-slate-100 px-4 py-2 rounded-lg">
-            <p className="text-xs text-slate-500 uppercase tracking-wider">Room Code</p>
-            <p className="text-xl font-bold text-[var(--primary)] uppercase">{room?.room_code}</p>
-          </div>
-          {room?.members?.find(m => m.user?.id === user?.id)?.role === 'teacher' && (
-            <>
-              <button
-                onClick={() => navigate(`/dashboard/t/${user.id}/room/${roomId}/analytics`)}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-500 text-white rounded-full hover:bg-purple-600 transition-colors"
-                title="View room analytics"
-              >
-                <PiChartBarDuotone size={20} />
-                <span className="text-sm font-medium">Analytics</span>
-              </button>
-              <button
-                onClick={handleCreateQuiz}
-                disabled={creatingQuiz}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                title="Create quiz for students"
-              >
-                <PiPlusDuotone size={20} />
-                <span className="text-sm font-medium">{creatingQuiz ? "Creating..." : "Create Quiz"}</span>
-              </button>
-            </>
-          )}
-          <button
-            onClick={handleShareInvite}
-            className="flex items-center px-5 bg-[var(--primary)] text-white rounded-full hover:bg-emerald-600 transition-colors"
-            title="Share invitation link"
-          >
-            <PiShareNetworkDuotone size={20} />
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content - Quizzes (Middle) and Members (Right) */}
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Quizzes Section - Middle */}
-        <div className="flex-1">
-          <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden animate-fadeIn" style={{ animationDelay: "0.1s" }}>
-            <div className="border-b border-slate-100 px-6 py-5 flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                  <PiFileTextDuotone size={24} className="text-blue-500" />
-                  Quizzes
-                </h2>
-                <p className="text-xs text-slate-500 mt-0.5">{quizzes.length} quiz{quizzes.length !== 1 ? 'zes' : ''} available</p>
-              </div>
-            </div>
-
-            <div className="p-6">
-              {quizzes.length === 0 ? (
-                <div className="text-center py-12">
-                  <PiFileTextDuotone size={48} className="mx-auto text-slate-300 mb-3" />
-                  <p className="text-slate-500 text-sm">No quizzes yet. Create your first quiz!</p>
+            {/* Metadata Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <div className="flex items-center gap-2.5">
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                  <PiUserDuotone size={18} className="text-purple-600" />
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {quizzes.map((quiz, index) => (
-                    <div
-                      key={quiz.id}
-                      className="group p-4 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all animate-slideInUp"
-                      style={{ animationDelay: `${index * 0.05}s` }}
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-500 font-medium">Teacher</p>
+                  <p className="text-sm font-semibold text-slate-900 truncate">
+                    {room?.members?.find((m) => m.role === "teacher")?.user
+                      ?.full_name || "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                  <PiBookOpenDuotone size={18} className="text-blue-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-500 font-medium">Subject</p>
+                  <p className="text-sm font-semibold text-slate-900 truncate">
+                    {room?.subject}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                  <PiClipboardTextDuotone
+                    size={18}
+                    className="text-emerald-600"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-500 font-medium">Section</p>
+                  <p className="text-sm font-semibold text-slate-900 truncate">
+                    {room?.section}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <PiCalendarDuotone size={18} className="text-amber-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs text-slate-500 font-medium">Created</p>
+                  <p className="text-sm font-semibold text-slate-900 truncate">
+                    {formatDate(room?.created_at)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Actions Bar */}
+          <div className="p-4 sm:p-5 bg-slate-50/50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            {/* Room Code */}
+            <div className="bg-white px-4 py-3 rounded-lg border border-slate-200 flex-shrink-0">
+              <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">
+                Room Code
+              </p>
+              <p className="text-lg sm:text-xl font-bold text-[var(--primary)] uppercase tracking-wider">
+                {room?.room_code}
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap items-center gap-2">
+              {isTeacher && (
+                <>
+                  <button
+                    onClick={() =>
+                      navigate(
+                        `/dashboard/t/${user.id}/room/${roomId}/analytics`,
+                      )
+                    }
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-500 text-white text-sm font-medium rounded-lg hover:bg-purple-600 active:scale-95 transition-all min-h-[44px]"
+                  >
+                    <PiChartBarDuotone size={20} />
+                    <span>Analytics</span>
+                  </button>
+                  <button
+                    onClick={handleCreateQuiz}
+                    disabled={creatingQuiz}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+                  >
+                    <PiPlusDuotone size={20} />
+                    <span>{creatingQuiz ? "Creating..." : "New Quiz"}</span>
+                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowRoomSettings(!showRoomSettings)}
+                      className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-500 text-white text-sm font-medium rounded-lg hover:bg-slate-600 active:scale-95 transition-all min-h-[44px]"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">{quiz.title}</h3>
-                            {user.role === 'teacher' && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleToggleQuizStatus(quiz);
-                                }}
-                                className={`p-1 rounded transition-colors ${
-                                  quiz.is_open
-                                    ? 'text-emerald-600 hover:bg-emerald-100'
-                                    : 'text-slate-400 hover:bg-slate-100'
-                                }`}
-                                title={quiz.is_open ? 'Quiz is open' : 'Quiz is closed'}
-                              >
-                                {quiz.is_open ? <PiLockOpenDuotone size={18} /> : <PiLockDuotone size={18} />}
-                              </button>
+                      <PiGearDuotone size={20} />
+                      <span>Settings</span>
+                    </button>
+                    {showRoomSettings && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-40"
+                          onClick={() => setShowRoomSettings(false)}
+                        />
+                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50 animate-fadeIn">
+                          <button
+                            onClick={() => {
+                              setShowRoomSettings(false);
+                              setShowRoomArchiveModal(true);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-amber-50 transition-colors"
+                          >
+                            <PiArchiveDuotone
+                              size={18}
+                              className="text-amber-600"
+                            />
+                            <span className="font-medium">Archive Room</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowRoomSettings(false);
+                              setShowRoomDeleteModal(true);
+                            }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                          >
+                            <PiTrashDuotone size={18} />
+                            <span className="font-medium">Delete Room</span>
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+              <button
+                onClick={handleShareInvite}
+                className="flex-shrink-0 flex items-center justify-center w-full sm:w-auto px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-emerald-600 active:scale-95 transition-all min-h-[44px]"
+              >
+                <PiShareNetworkDuotone size={20} className="sm:mr-2" />
+                <span className="sm:inline">Share Invite</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Current User Ranking Card - Only for Students */}
+        {!isTeacher && currentUserRanking && (
+          <div className="bg-gradient-to-br from-emerald-500 to-blue-500 rounded-xl sm:rounded-2xl border border-emerald-300 shadow-lg mb-6 overflow-hidden">
+            <div className="p-5 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+                    <PiTrophyDuotone size={32} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="text-white/80 text-xs font-medium mb-1">
+                      Your Rank
+                    </p>
+                    <p className="text-white text-3xl font-bold">
+                      #{currentUserRanking.rank}
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-white/80 text-xs font-medium mb-1">
+                    Total Score
+                  </p>
+                  <p className="text-white text-2xl font-bold">
+                    {currentUserRanking.total_score}
+                  </p>
+                  <p className="text-white/70 text-xs mt-1">
+                    {currentUserRanking.quizzes_taken} quiz
+                    {currentUserRanking.quizzes_taken !== 1 ? "zes" : ""} taken
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Quizzes Section - Takes 2 columns on large screens */}
+          <div className="lg:col-span-2">
+            <div className=" overflow-hidden">
+              {/* Section Header */}
+              <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                      <PiFileTextDuotone size={22} className="text-blue-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+                        Quizzes
+                      </h2>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {quizzes?.length} total
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quizzes List */}
+              <div className="p-4 sm:p-6">
+                {quizzes?.length === 0 ? (
+                  <div className="text-center py-16">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                      <PiFileTextDuotone size={32} className="text-slate-400" />
+                    </div>
+                    <p className="text-sm text-slate-500 font-medium">
+                      No quizzes yet
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Create your first quiz to get started
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {quizzes?.map((quiz) => (
+                      <div
+                        key={quiz.id}
+                        className="group p-4 sm:p-5 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-sm bg-white hover:bg-blue-50/30 transition-all"
+                      >
+                        {/* Quiz Header */}
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <h3 className="text-base sm:text-lg font-semibold text-slate-900 group-hover:text-blue-600 transition-colors truncate">
+                                {quiz.title}
+                              </h3>
+                              {isTeacher && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleToggleQuizStatus(quiz);
+                                  }}
+                                  className={`flex-shrink-0 p-1.5 rounded-lg transition-all min-h-[36px] min-w-[36px] flex items-center justify-center ${
+                                    quiz.is_open
+                                      ? "text-emerald-600 hover:bg-emerald-100"
+                                      : "text-slate-400 hover:bg-slate-100"
+                                  }`}
+                                  title={
+                                    quiz.is_open
+                                      ? "Quiz is open"
+                                      : "Quiz is closed"
+                                  }
+                                >
+                                  {quiz.is_open ? (
+                                    <PiLockOpenDuotone size={20} />
+                                  ) : (
+                                    <PiLockDuotone size={20} />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                            {quiz.description && (
+                              <p className="text-xs sm:text-sm text-slate-600 line-clamp-2 mb-2">
+                                {quiz.description}
+                              </p>
                             )}
                           </div>
-                          {quiz.description && (
-                            <p className="text-sm text-slate-500 mt-1">{quiz.description}</p>
-                          )}
-                          <div className="flex items-center gap-3 mt-2 text-xs text-slate-400">
-                            <span>Created: {formatDate(quiz.created_at)}</span>
-                            {quiz.due_date && <span>Due: {formatDate(quiz.due_date)}</span>}
+
+                          {/* Status Badges */}
+                          <div className="flex gap-1.5 flex-shrink-0">
+                            {isTeacher && (
+                              <>
+                                <span
+                                  className={`px-2.5 py-1 rounded-full text-xs font-semibold text-center whitespace-nowrap ${
+                                    quiz.is_published
+                                      ? "bg-emerald-100 text-emerald-700"
+                                      : "bg-slate-100 text-slate-600"
+                                  }`}
+                                >
+                                  {user.role === "teacher"
+                                    ? quiz.is_published
+                                      ? "Published"
+                                      : "Draft"
+                                    : ""}
+                                </span>
+                                <span
+                                  className={`px-2.5 py-1 rounded-full text-xs font-semibold text-center whitespace-nowrap ${
+                                    quiz.is_open
+                                      ? "bg-blue-100 text-blue-700"
+                                      : "bg-amber-100 text-amber-700"
+                                  }`}
+                                >
+                                  {quiz.is_open ? "Open" : "Closed"}
+                                </span>
+                              </>
+                            )}
                           </div>
                         </div>
-                        <div className="flex flex-col items-end gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              quiz.is_published
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-slate-100 text-slate-600"
-                            }`}>
-                              {quiz.is_published ? "Published" : "Draft"}
+
+                        {/* Quiz Footer */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                          {/* Metadata */}
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                            <span className="font-medium">
+                              Created {formatDate(quiz.created_at)}
                             </span>
-                            {user.role === 'teacher' && (
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                                quiz.is_open
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-amber-100 text-amber-700"
-                              }`}>
-                                {quiz.is_open ? "Open" : "Closed"}
+                            {quiz.due_date && (
+                              <span className="font-medium">
+                                Due {formatDate(quiz.due_date)}
                               </span>
                             )}
                           </div>
-                          {user.role === 'teacher' ? (
-                            <div className="flex gap-2">
+
+                          {/* Action Buttons */}
+                          {isTeacher ? (
+                            <div className="relative">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  navigate(`/dashboard/t/${user.id}/room/${roomId}/quiz/${quiz.id}`);
+                                  setOpenDropdown(
+                                    openDropdown === quiz.id ? null : quiz.id,
+                                  );
                                 }}
-                                className="px-3 py-1 text-xs bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 active:scale-95 transition-all min-h-[40px]"
                               >
-                                Edit
+                                <PiDotsThreeVerticalBold size={16} />
                               </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  navigate(`/dashboard/t/${user.id}/room/${roomId}/quiz/${quiz.id}/submissions`);
-                                }}
-                                className="px-3 py-1 text-xs bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
-                              >
-                                Submissions
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedQuiz(quiz);
-                                  setShowArchiveModal(true);
-                                }}
-                                className="px-3 py-1 text-xs bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
-                                title="Archive quiz"
-                              >
-                                <PiArchiveDuotone size={14} />
-                              </button>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedQuiz(quiz);
-                                  setShowDeleteModal(true);
-                                }}
-                                className="px-3 py-1 text-xs bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                                title="Delete quiz"
-                              >
-                                <PiTrashDuotone size={14} />
-                              </button>
+
+                              {/* Dropdown Menu */}
+                              {openDropdown === quiz.id && (
+                                <>
+                                  <div
+                                    className="fixed inset-0 z-10"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setOpenDropdown(null);
+                                    }}
+                                  />
+                                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-100 animate-fadeIn">
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenDropdown(null);
+                                        navigate(
+                                          `/dashboard/t/${user.id}/room/${roomId}/quiz/${quiz.id}`,
+                                        );
+                                      }}
+                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-blue-50 transition-colors"
+                                    >
+                                      <PiPencilSimpleDuotone
+                                        size={18}
+                                        className="text-blue-600"
+                                      />
+                                      <span className="font-medium">
+                                        Edit Quiz
+                                      </span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenDropdown(null);
+                                        navigate(
+                                          `/dashboard/t/${user.id}/room/${roomId}/quiz/${quiz.id}/submissions`,
+                                        );
+                                      }}
+                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-emerald-50 transition-colors"
+                                    >
+                                      <PiClipboardDuotone
+                                        size={18}
+                                        className="text-emerald-600"
+                                      />
+                                      <span className="font-medium">
+                                        View Submissions
+                                      </span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenDropdown(null);
+                                        navigate(
+                                          `/dashboard/t/${user.id}/room/${roomId}/quiz/${quiz.id}/rankings`,
+                                        );
+                                      }}
+                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-amber-50 transition-colors"
+                                    >
+                                      <PiTrophyDuotone
+                                        size={18}
+                                        className="text-amber-600"
+                                      />
+                                      <span className="font-medium">
+                                        View Rankings
+                                      </span>
+                                    </button>
+                                    <div className="my-1 border-t border-slate-100" />
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenDropdown(null);
+                                        setSelectedQuiz(quiz);
+                                        setShowArchiveModal(true);
+                                      }}
+                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                                    >
+                                      <PiArchiveDuotone
+                                        size={18}
+                                        className="text-slate-600"
+                                      />
+                                      <span className="font-medium">
+                                        Archive Quiz
+                                      </span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenDropdown(null);
+                                        setSelectedQuiz(quiz);
+                                        setShowDeleteModal(true);
+                                      }}
+                                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                    >
+                                      <PiTrashDuotone size={18} />
+                                      <span className="font-medium">
+                                        Delete Quiz
+                                      </span>
+                                    </button>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           ) : quiz.is_published && quiz.is_open ? (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/dashboard/s/${user.id}/room/${roomId}/quiz/${quiz.id}/take`);
-                              }}
-                              className="px-3 py-1 text-xs bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors"
-                            >
-                              Take Quiz
-                            </button>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(
+                                    `/dashboard/s/${user.id}/room/${roomId}/quiz/${quiz.id}/take`,
+                                  );
+                                }}
+                                className="px-4 py-2 text-sm font-semibold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 active:scale-95 transition-all min-h-[40px]"
+                              >
+                                Take Quiz
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(
+                                    `/dashboard/s/${user.id}/room/${roomId}/quiz/${quiz.id}/rankings`,
+                                  );
+                                }}
+                                className="px-4 py-2 text-sm font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 active:scale-95 transition-all min-h-[40px]"
+                              >
+                                Rankings
+                              </button>
+                            </div>
                           ) : quiz.is_published && !quiz.is_open ? (
-                            <span className="px-3 py-1 text-xs bg-slate-100 text-slate-500 rounded-lg">
-                              Closed
-                            </span>
+                            <div className="flex flex-wrap gap-2">
+                              <span className="px-3 py-1.5 text-xs font-semibold bg-slate-100 text-slate-500 rounded-lg">
+                                Closed
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(
+                                    `/dashboard/s/${user.id}/room/${roomId}/quiz/${quiz.id}/rankings`,
+                                  );
+                                }}
+                                className="px-3 py-1.5 text-xs font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 active:scale-95 transition-all min-h-[36px]"
+                              >
+                                Rankings
+                              </button>
+                            </div>
                           ) : null}
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Members Section - Right */}
-        <div className="lg:w-96">
-          <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden animate-fadeIn" style={{ animationDelay: "0.15s" }}>
-            <div className="border-b border-slate-100 px-6 py-5">
-              <h2 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
-                <PiUsersDuotone size={24} className="text-[var(--primary)]" />
-                Members
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">{room?.members?.length || 0} total members</p>
-            </div>
-
-            <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
-              {room?.members?.map((member, index) => (
-                <div
-                  key={member.id}
-                  className="px-6 py-4 hover:bg-slate-50 transition-colors animate-slideInUp"
-                  style={{ animationDelay: `${index * 0.05}s` }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-semibold flex-shrink-0">
-                      {member.user?.full_name?.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 flex items-center gap-2 text-sm">
-                        <span className="truncate">{member.user?.full_name}</span>
-                        {member.role === "teacher" && (
-                          <PiCrownDuotone size={14} className="text-amber-500 flex-shrink-0" />
-                        )}
-                      </p>
-                      <p className="text-xs truncate text-slate-500">{member.user?.email}</p>
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
-                      member.role === "teacher"
-                        ? "bg-amber-100 text-amber-700"
-                        : "bg-blue-100 text-blue-700"
-                    }`}>
-                      {member.role}
-                    </span>
+          {/* Members Section - Takes 1 column on large screens */}
+          <div className="z-3 relative">
+            <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden sticky top-6">
+              {/* Section Header */}
+              <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+                    <PiTrophyDuotone size={22} className="text-amber-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+                      Leaderboard
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      {rankings?.length} student
+                      {rankings?.length !== 1 ? "s" : ""}
+                    </p>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              {/* Rankings List */}
+              <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
+                {rankings?.length === 0 ? (
+                  <div className="px-5 sm:px-6 py-12 text-center">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
+                      <PiTrophyDuotone size={32} className="text-slate-400" />
+                    </div>
+                    <p className="text-sm text-slate-500 font-medium">
+                      No rankings yet
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      Complete quizzes to see rankings
+                    </p>
+                  </div>
+                ) : (
+                  rankings?.map((student, index) => {
+                    const isCurrentUser = student.user_id === user?.id;
+                    const getRankColor = (rank) => {
+                      if (rank === 1) return "from-amber-400 to-yellow-500";
+                      if (rank === 2) return "from-slate-300 to-slate-400";
+                      if (rank === 3) return "from-orange-400 to-amber-600";
+                      return "from-slate-200 to-slate-300";
+                    };
+
+                    return (
+                      <div
+                        key={student.user_id}
+                        className={`px-5 sm:px-6 py-4 transition-colors ${
+                          isCurrentUser
+                            ? "bg-emerald-50 border-l-4 border-emerald-500"
+                            : "hover:bg-slate-50"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          {/* Profile Image with Rank Badge */}
+                          <div className="relative flex-shrink-0">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden border-2 border-white shadow-sm">
+                              <img
+                                src={`https://juexwulmukznvepvtzts.supabase.co/storage/v1/object/public/profiles/${student.google_id}.png`}
+                                alt={student.full_name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            {/* Rank Badge Overlay */}
+                            <div
+                              className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br ${getRankColor(student.rank)} flex items-center justify-center border-2 border-white shadow-md`}
+                            >
+                              {student.rank <= 3 ? (
+                                <PiMedalDuotone
+                                  size={14}
+                                  className="text-white"
+                                />
+                              ) : (
+                                <span className="text-[10px] font-bold text-white">
+                                  #{student.rank}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Student Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                              <p
+                                className={`text-sm font-semibold truncate ${
+                                  isCurrentUser
+                                    ? "text-emerald-700"
+                                    : "text-slate-900"
+                                }`}
+                              >
+                                {student.full_name}
+                                {isCurrentUser && (
+                                  <span className="ml-1 text-xs">(You)</span>
+                                )}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                              <span className="font-medium">
+                                {student.total_score} pts
+                              </span>
+                              <span>•</span>
+                              <span>
+                                {student.quizzes_taken} quiz
+                                {student.quizzes_taken !== 1 ? "zes" : ""}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Average Score Badge */}
+                          {student.quizzes_taken > 0 && (
+                            <div className="flex-shrink-0 text-right">
+                              <p className="text-xs text-slate-500 font-medium mb-0.5">
+                                Avg
+                              </p>
+                              <p
+                                className={`text-sm font-bold ${
+                                  student.average_score >= 80
+                                    ? "text-emerald-600"
+                                    : student.average_score >= 60
+                                      ? "text-blue-600"
+                                      : student.average_score >= 40
+                                        ? "text-amber-600"
+                                        : "text-red-600"
+                                }`}
+                              >
+                                {student.average_score}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -452,38 +1031,43 @@ export default function RoomDetails() {
 
       {/* Archive Confirmation Modal */}
       {showArchiveModal && selectedQuiz && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
-            <div className="flex items-start justify-between mb-4">
+        <div className="fixed inset-0  flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-fadeIn">
+            <div className="flex items-start justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-amber-100 rounded-lg">
+                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
                   <PiArchiveDuotone size={24} className="text-amber-600" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900">Archive Quiz?</h3>
+                <h3 className="text-xl font-bold text-slate-900">
+                  Archive Quiz?
+                </h3>
               </div>
               <button
                 onClick={() => setShowArchiveModal(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
               >
                 <PiXBold size={20} />
               </button>
             </div>
-            <p className="text-slate-600 mb-6">
-              Are you sure you want to archive <span className="font-semibold">"{selectedQuiz.title}"</span>? 
-              It will be hidden from students and moved to the archived quizzes page.
+            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+              Are you sure you want to archive{" "}
+              <span className="font-semibold text-slate-900">
+                "{selectedQuiz.title}"
+              </span>
+              ? It will be hidden from students and moved to archived quizzes.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowArchiveModal(false)}
                 disabled={processing}
-                className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 border-2 border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleArchiveQuiz}
                 disabled={processing}
-                className="flex-1 px-4 py-2 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 bg-amber-500 text-white text-sm font-semibold rounded-lg hover:bg-amber-600 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
               >
                 {processing ? "Archiving..." : "Archive"}
               </button>
@@ -494,44 +1078,150 @@ export default function RoomDetails() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && selectedQuiz && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
-            <div className="flex items-start justify-between mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-fadeIn">
+            <div className="flex items-start justify-between mb-5">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-100 rounded-lg">
+                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
                   <PiWarningDuotone size={24} className="text-red-600" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900">Delete Quiz?</h3>
+                <h3 className="text-xl font-bold text-slate-900">
+                  Delete Quiz?
+                </h3>
               </div>
               <button
                 onClick={() => setShowDeleteModal(false)}
-                className="text-slate-400 hover:text-slate-600"
+                className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
               >
                 <PiXBold size={20} />
               </button>
             </div>
-            <p className="text-slate-600 mb-2">
-              Are you sure you want to permanently delete <span className="font-semibold">"{selectedQuiz.title}"</span>?
+            <p className="text-sm text-slate-600 mb-3 leading-relaxed">
+              Are you sure you want to permanently delete{" "}
+              <span className="font-semibold text-slate-900">
+                "{selectedQuiz.title}"
+              </span>
+              ?
             </p>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-6">
-              <p className="text-sm text-red-800 font-medium">
-                ⚠️ This action cannot be undone. All questions, submissions, and student data will be permanently deleted.
+            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-6">
+              <p className="text-xs text-red-800 font-semibold leading-relaxed">
+                ⚠️ This action cannot be undone. All questions, submissions, and
+                student data will be permanently deleted.
               </p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteModal(false)}
                 disabled={processing}
-                className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 border-2 border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleDeleteQuiz}
                 disabled={processing}
-                className="flex-1 px-4 py-2 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+                className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-lg hover:bg-red-600 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
               >
-                {processing ? "Deleting..." : "Delete Permanently"}
+                {processing ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Room Archive Confirmation Modal */}
+      {showRoomArchiveModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-fadeIn">
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <PiArchiveDuotone size={24} className="text-amber-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">
+                  Archive Room?
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowRoomArchiveModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+              >
+                <PiXBold size={20} />
+              </button>
+            </div>
+            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+              Are you sure you want to archive{" "}
+              <span className="font-semibold text-slate-900">
+                "{room?.name}"
+              </span>
+              ? It will be hidden from the active rooms list.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowRoomArchiveModal(false)}
+                disabled={processing}
+                className="flex-1 px-4 py-2.5 border-2 border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleArchiveRoom}
+                disabled={processing}
+                className="flex-1 px-4 py-2.5 bg-amber-500 text-white text-sm font-semibold rounded-lg hover:bg-amber-600 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
+              >
+                {processing ? "Archiving..." : "Archive"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Room Delete Confirmation Modal */}
+      {showRoomDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-fadeIn">
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <PiWarningDuotone size={24} className="text-red-600" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">
+                  Delete Room?
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowRoomDeleteModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+              >
+                <PiXBold size={20} />
+              </button>
+            </div>
+            <p className="text-sm text-slate-600 mb-3 leading-relaxed">
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-slate-900">
+                "{room?.name}"
+              </span>
+              ?
+            </p>
+            <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 mb-6">
+              <p className="text-xs text-amber-800 font-semibold leading-relaxed">
+                ⚠️ This room will be moved to the recycle bin. You can restore
+                it later or permanently delete it.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowRoomDeleteModal(false)}
+                disabled={processing}
+                className="flex-1 px-4 py-2.5 border-2 border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteRoom}
+                disabled={processing}
+                className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-lg hover:bg-red-600 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
+              >
+                {processing ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>

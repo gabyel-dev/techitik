@@ -8,6 +8,7 @@ import TeacherQuizzes from "./pages/role/teacher/TeacherQuizzes.jsx";
 import TeacherStudents from "./pages/role/teacher/TeacherStudents.jsx";
 import TeacherSettings from "./pages/role/teacher/TeacherSettings.jsx";
 import ArchivedQuizzes from "./pages/role/teacher/ArchivedQuizzes.jsx";
+import ArchivedRooms from "./pages/role/teacher/ArchivedRooms.jsx";
 import StudentLayout from "./pages/role/student/StudentLayout.jsx";
 import StudentClasses from "./pages/role/student/StudentClasses.jsx";
 import StudentAchievements from "./pages/role/student/StudentAchievements.jsx";
@@ -21,6 +22,7 @@ import TeacherSubmissionsEnhanced from "./components/Quiz/TeacherSubmissionsEnha
 import StudentScoreView from "./components/Quiz/StudentScoreView.jsx";
 import QuizAnalytics from "./components/Quiz/QuizAnalytics.jsx";
 import RoomAnalytics from "./components/Quiz/RoomAnalytics.jsx";
+import QuizRankings from "./pages/QuizRankings.jsx";
 
 const App = () => {
   return (
@@ -55,8 +57,14 @@ const App = () => {
           <Route path="achievements" element={<StudentAchievements />} />
           <Route path="settings" element={<StudentSettings />} />
           <Route path="room/:roomId" element={<RoomDetails />} />
-          <Route path="room/:roomId/quiz/:quizId/take" element={<StudentQuizTaking />} />
-          <Route path="room/:roomId/quiz/:quizId/score" element={<StudentScoreView />} />
+          <Route
+            path="room/:roomId/quiz/:quizId/take"
+            element={<StudentQuizTaking />}
+          />
+          <Route
+            path="room/:roomId/quiz/:quizId/score"
+            element={<StudentScoreView />}
+          />
         </Route>
 
         <Route
@@ -79,12 +87,20 @@ const App = () => {
           <Route index element={<TeacherDashboardContent />} />
           <Route path="quizzes" element={<TeacherQuizzes />} />
           <Route path="archived" element={<ArchivedQuizzes />} />
+          <Route path="archived-rooms" element={<ArchivedRooms />} />
           <Route path="students" element={<TeacherStudents />} />
           <Route path="settings" element={<TeacherSettings />} />
           <Route path="room/:roomId" element={<RoomDetails />} />
           <Route path="room/:roomId/quiz/:quizId" element={<QuizBuilder />} />
-          <Route path="room/:roomId/quiz/:quizId/submissions" element={<TeacherSubmissionsEnhanced />} />
+          <Route
+            path="room/:roomId/quiz/:quizId/submissions"
+            element={<TeacherSubmissionsEnhanced />}
+          />
           <Route path="room/:roomId/analytics" element={<RoomAnalytics />} />
+          <Route
+            path="room/:roomId/quiz/:quizId/rankings"
+            element={<QuizRankings />}
+          />
         </Route>
 
         {/* Standalone Analytics Routes */}

@@ -20,7 +20,7 @@ export const GetStudentRoomLists = () => {
       setLoading(true);
       try {
         const data = await GetStudentRooms();
-        setRooms(data.rooms || []);
+        setRooms(data.data || []);
       } catch (error) {
         console.error("Failed to fetch student rooms:", error);
         setRooms([]);
@@ -97,7 +97,7 @@ export const GetStudentRoomLists = () => {
                   <div className="flex items-center gap-4 text-xl font-bold text-[var(--text-green)]">
                     <div className="flex items-center gap-1">
                       <PiUsersDuotone size={14} />
-                      <span>{room?.student_count || 0}</span>
+                      <span>{room?.member_count || 0}</span>
                     </div>
                   </div>
                 </div>

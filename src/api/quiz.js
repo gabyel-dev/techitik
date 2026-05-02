@@ -95,3 +95,8 @@ export const GetArchivedQuizzes = async () => {
   const response = await api.get('/quiz/teacher/archived');
   return response.data;
 };
+
+export const GetQuizRankings = async (quizId) => {
+  const response = await api.get(`/quiz/${quizId}/rankings`);
+  return response.data;
+};

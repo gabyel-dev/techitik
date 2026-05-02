@@ -13,7 +13,7 @@ export const RoomProvider = ({ children }) => {
     setLoading(true);
     try {
       const data = await GetRooms();
-      setRooms(data.rooms);
+      setRooms(data.data || []);
     } catch (error) {
       console.error("Failed to fetch rooms:", error);
       setRooms([]);

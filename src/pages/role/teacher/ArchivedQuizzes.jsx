@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   GetArchivedQuizzes,
   UnarchiveQuiz,
   DeleteQuiz,
 } from "../../../api/quiz";
-import { useAuth } from "../../../context/authContext";
 import Loader from "../../../components/loader";
 import toast from "react-hot-toast";
 import {
@@ -18,8 +16,6 @@ import {
 } from "react-icons/pi";
 
 export default function ArchivedQuizzes() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showUnarchiveModal, setShowUnarchiveModal] = useState(false);

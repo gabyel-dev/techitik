@@ -1,21 +1,77 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../../context/authContext";
+import { useNavigate } from "react-router-dom";
+import { GetRooms } from "../../../api/rooms";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import {
   PiBooksDuotone,
   PiUsersDuotone,
   PiPlusDuotone,
   PiClockDuotone,
   PiSparkleDuotone,
+  PiChartBarDuotone,
 } from "react-icons/pi";
 import { CreateRoomModal } from "../../../components/Modal/CreateRoomModal";
+import Loader from "../../../components/loader";
 
 export default function TeacherDashboardContent() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [rooms, setRooms] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const roomsResponse = await GetRooms();
+      const roomsData = roomsResponse.data || [];
+      setRooms(roomsData);
+
+      const totalQuizzes = roomsData.reduce((sum, room) => sum + (room.quiz_count || 0), 0);
+      const totalStudents = roomsData.reduce((sum, room) => sum + (room.member_count || 0), 0);
+      const activeQuizzes = roomsData.reduce((sum, room) => sum + (room.active_quiz_count || 0), 0);
+
+      setStats({
+        totalQuizzes,
+        totalStudents,
+        activeQuizzes,
+        totalRooms: roomsData.length,
+      });
+    } catch (err) {
+      console.error("Failed to fetch dashboard data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
+
+  const roomChartData = rooms.slice(0, 5).map(room => ({
+    name: room.name.length > 15 ? room.name.substring(0, 15) + '...' : room.name,
+    students: room.member_count || 0,
+    quizzes: room.quiz_count || 0,
+  }));
+
+  const quizStatusData = [
+    { name: 'Active', value: stats?.activeQuizzes || 0 },
+    { name: 'Inactive', value: (stats?.totalQuizzes || 0) - (stats?.activeQuizzes || 0) },
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-8 animate-fadeIn ">
-      {/* Floating Create Room Button - Mobile & Tablet Only */}
       <button
         onClick={() => setIsModalVisible(true)}
         className="md:hidden z-1 fixed bottom-6 right-6 h-14 w-14 rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/40 hover:shadow-emerald-500/60 active:scale-95 transition-all duration-200 flex items-center justify-center"
@@ -50,7 +106,7 @@ export default function TeacherDashboardContent() {
               </span>{" "}
             </h2>
             <p className="mt-1 text-xs md:text-sm text-emerald-100">
-              You have 3 active quizzes and 5 rooms to manage today.
+              You have {stats?.activeQuizzes || 0} active quizzes and {stats?.totalRooms || 0} rooms to manage today.
             </p>
           </div>
         </div>
@@ -84,8 +140,8 @@ export default function TeacherDashboardContent() {
 
       <main className="__main_container__ flex gap-8 w-full relative">
         <section className="__overview__ flex-[2]">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 mb-8">
-            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div onClick={() => navigate(`/dashboard/t/${user.id}/quizzes`)} className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 shadow-sm group-hover:scale-105 transition-transform">
@@ -95,16 +151,13 @@ export default function TeacherDashboardContent() {
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Total Quizzes
                     </p>
-                    <p className="text-3xl font-bold text-slate-900 mt-1">24</p>
+                    <p className="text-3xl font-bold text-slate-900 mt-1">{stats?.totalQuizzes || 0}</p>
                   </div>
-                </div>
-                <div className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">
-                  +12%
                 </div>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
+            <div onClick={() => navigate(`/dashboard/t/${user.id}/students`)} className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600 shadow-sm group-hover:scale-105 transition-transform">
@@ -112,15 +165,12 @@ export default function TeacherDashboardContent() {
                   </div>
                   <div>
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Active Students
+                      Total Students
                     </p>
                     <p className="text-3xl font-bold text-slate-900 mt-1">
-                      142
+                      {stats?.totalStudents || 0}
                     </p>
                   </div>
-                </div>
-                <div className="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">
-                  +5%
                 </div>
               </div>
             </div>
@@ -133,90 +183,97 @@ export default function TeacherDashboardContent() {
                   </div>
                   <div>
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
-                      Pending Reviews
+                      Active Quizzes
                     </p>
-                    <p className="text-3xl font-bold text-slate-900 mt-1">7</p>
+                    <p className="text-3xl font-bold text-slate-900 mt-1">{stats?.activeQuizzes || 0}</p>
                   </div>
                 </div>
-                <div className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-700">
-                  Due Today
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 text-purple-600 shadow-sm group-hover:scale-105 transition-transform">
+                    <PiChartBarDuotone size={24} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      Total Rooms
+                    </p>
+                    <p className="text-3xl font-bold text-slate-900 mt-1">{stats?.totalRooms || 0}</p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="w-full">
-            <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden flex flex-col">
-              <div className="border-b border-slate-100 px-6 py-5 flex items-center justify-between">
-                <div>
-                  <h2 className="text-base font-semibold text-slate-900">
-                    Recent Quizzes
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Latest 5 quizzes across all rooms
-                  </p>
-                </div>
-                <button className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 px-4 py-2 rounded-lg hover:bg-emerald-50 transition-all duration-200">
-                  View All
-                </button>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden">
+              <div className="border-b border-slate-100 px-6 py-5">
+                <h2 className="text-base font-semibold text-slate-900">
+                  Room Statistics
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Students and quizzes per room
+                </p>
               </div>
-              <div className="flex-1 overflow-x-auto">
-                <table className="w-full min-w-[600px]">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white text-left">
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Quiz Name
-                      </th>
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Subject
-                      </th>
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Participants
-                      </th>
-                      <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50">
-                    <tr className="hover:bg-slate-50/50 transition-colors cursor-pointer group">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                            <PiBooksDuotone
-                              className="text-blue-600"
-                              size={16}
-                            />
-                          </div>
-                          <span className="font-medium text-slate-900 group-hover:text-emerald-600 transition-colors">
-                            Midterm: React Fundamentals
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="px-2.5 py-1 rounded-full bg-slate-100 text-xs font-medium text-slate-600">
-                          Web Dev 101
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-24 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-                            <div className="h-full w-[90%] rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600"></div>
-                          </div>
-                          <span className="text-sm text-slate-600 font-medium">
-                            45/50
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                          Active
-                        </span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div className="p-6">
+                {roomChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={roomChartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip />
+                      <Bar dataKey="students" fill="#10b981" name="Students" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="quizzes" fill="#3b82f6" name="Quizzes" radius={[8, 8, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center py-12 text-slate-500">
+                    No room data available
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200/60 bg-white shadow-sm overflow-hidden">
+              <div className="border-b border-slate-100 px-6 py-5">
+                <h2 className="text-base font-semibold text-slate-900">
+                  Quiz Status Distribution
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Active vs inactive quizzes
+                </p>
+              </div>
+              <div className="p-6">
+                {stats?.totalQuizzes > 0 ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={quizStatusData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {quizStatusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="text-center py-12 text-slate-500">
+                    No quiz data available
+                  </div>
+                )}
               </div>
             </div>
           </div>

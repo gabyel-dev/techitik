@@ -3,10 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useRooms } from "../../context/roomContext";
 import { useSidebar } from "../../context/sidebarContext";
 import {
-  PiBooksDuotone,
   PiUsersDuotone,
   PiArrowRightDuotone,
-  PiClockDuotone,
 } from "react-icons/pi";
 
 export const GetRoomLists = () => {
@@ -40,7 +38,7 @@ export const GetRoomLists = () => {
   }
 
   return (
-    <div className="space-y-4 w-full  pb-3 ">
+    <div className="space-y-4 w-full pb-3">
       <div className="space-y-3 overflow-hidden">
         {rooms.map((room) => {
           const isActive = location.pathname.includes(`/room/${room?.id}`);
@@ -87,7 +85,7 @@ export const GetRoomLists = () => {
                   <div className="flex items-center gap-4 text-xl font-bold text-white">
                     <div className="flex items-center gap-1">
                       <PiUsersDuotone size={14} />
-                      <span>{room?.student_count}</span>
+                      <span>{room?.member_count || 0}</span>
                     </div>
                   </div>
                 </div>
