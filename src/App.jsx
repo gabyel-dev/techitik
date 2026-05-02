@@ -58,6 +58,7 @@ const App = () => {
             <Route path="quiz/:quizId/take" element={<StudentQuizTaking />} />
             <Route path="quiz/:quizId/score" element={<StudentScoreView />} />
             <Route path="quiz/:quizId/rankings" element={<QuizRankings />} />
+            <Route path="quiz/:quizId/details" element={<QuizDetails />} />
           </Route>
         </Route>
 
