@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { 
-  GetSubmissions, 
-  GetViolations, 
-  ReleaseScore, 
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import {
+  GetSubmissions,
+  GetViolations,
+  ReleaseScore,
   BulkReleaseScores,
   GetStudentResponses,
   OverrideScore,
@@ -17,16 +17,22 @@ import {
   PiXBold,
   PiChartBarDuotone,
   PiNoteDuotone,
+  PiArrowLeft,
 } from "react-icons/pi";
+import { useAuth } from "../../context/authContext";
+import { usePolling } from "../../hooks/useOptimizedFetch";
+import { useRoom } from "../../context/roomContext";
 
 export default function TeacherSubmissions() {
   const { quizId } = useParams();
+  const { user } = useAuth();
+  const { room } = useRoom();
   const navigate = useNavigate();
   const [submissions, setSubmissions] = useState([]);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [violations, setViolations] = useState([]);
   const [studentResponses, setStudentResponses] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadings, setLoading] = useState(true);
   const [showViolations, setShowViolations] = useState(false);
   const [showResponses, setShowResponses] = useState(false);
   const [editingScore, setEditingScore] = useState(null);
@@ -81,7 +87,7 @@ export default function TeacherSubmissions() {
       await OverrideScore(responseId, newPoints);
       toast.success("Score updated");
       setEditingScore(null);
-      
+
       // Refresh responses and submissions
       const response = await GetStudentResponses(selectedSubmission.id);
       setStudentResponses(response.data || []);
@@ -96,7 +102,7 @@ export default function TeacherSubmissions() {
       toast.error("No submission to release");
       return;
     }
-    
+
     try {
       await ReleaseScore(attemptId);
       toast.success("Score released");
@@ -107,7 +113,9 @@ export default function TeacherSubmissions() {
   };
 
   const handleBulkRelease = async () => {
-    const submittedCount = submissions.filter(s => s.status === 'submitted').length;
+    const submittedCount = submissions.filter(
+      (s) => s.status === "submitted",
+    ).length;
     if (submittedCount === 0) {
       toast.error("No submitted quizzes to release");
       return;
@@ -134,52 +142,73 @@ export default function TeacherSubmissions() {
 
   const getStatusBadge = (status) => {
     const badges = {
-      submitted: { bg: "bg-emerald-100", text: "text-emerald-700", label: "Submitted" },
-      in_progress: { bg: "bg-blue-100", text: "text-blue-700", label: "In Progress" },
-      not_started: { bg: "bg-slate-100", text: "text-slate-600", label: "Not Started" },
+      submitted: {
+        bg: "bg-emerald-100",
+        text: "text-emerald-700",
+        label: "Submitted",
+      },
+      in_progress: {
+        bg: "bg-blue-100",
+        text: "text-blue-700",
+        label: "In Progress",
+      },
+      not_started: {
+        bg: "bg-slate-100",
+        text: "text-slate-600",
+        label: "Not Started",
+      },
       paused: { bg: "bg-amber-100", text: "text-amber-700", label: "Paused" },
     };
     return badges[status] || badges.not_started;
   };
 
-  const filteredSubmissions = submissions.filter(sub => {
+  const filteredSubmissions = submissions.filter((sub) => {
     if (filterStatus === "all") return true;
     return sub.status === filterStatus;
   });
 
   const stats = {
     total: submissions.length,
-    submitted: submissions.filter(s => s.status === "submitted").length,
-    in_progress: submissions.filter(s => s.status === "in_progress").length,
-    not_started: submissions.filter(s => s.status === "not_started").length,
+    submitted: submissions.filter((s) => s.status === "submitted").length,
+    in_progress: submissions.filter((s) => s.status === "in_progress").length,
+    not_started: submissions.filter((s) => s.status === "not_started").length,
   };
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
       <div className="max-w-7xl mx-auto">
+        <div className="flex w-fit pb-5">
+          <Link
+            to={`/dashboard/t/${user.id}/room/${room.id}`}
+            replace={true}
+            className="flex items-center gap-2 "
+          >
+            <PiArrowLeft color="black" />
+          </Link>
+        </div>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Quiz Submissions</h1>
+            <h1 className="text-3xl font-bold text-slate-900">
+              Quiz Submissions
+            </h1>
             <div className="flex items-center gap-4 mt-2 text-sm">
               <span className="text-slate-500">
-                Total: <span className="font-semibold text-slate-900">{stats.total}</span>
+                Total:{" "}
+                <span className="font-semibold text-slate-900">
+                  {stats.total}
+                </span>
               </span>
               <span className="text-emerald-600">
-                Submitted: <span className="font-semibold">{stats.submitted}</span>
+                Submitted:{" "}
+                <span className="font-semibold">{stats.submitted}</span>
               </span>
               <span className="text-blue-600">
-                In Progress: <span className="font-semibold">{stats.in_progress}</span>
+                In Progress:{" "}
+                <span className="font-semibold">{stats.in_progress}</span>
               </span>
               <span className="text-slate-600">
-                Not Started: <span className="font-semibold">{stats.not_started}</span>
+                Not Started:{" "}
+                <span className="font-semibold">{stats.not_started}</span>
               </span>
             </div>
           </div>
@@ -249,14 +278,30 @@ export default function TeacherSubmissions() {
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Student</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Status</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Base Score</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Violations</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Penalty</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Final Score</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Submitted</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">Actions</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">
+                    Student
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">
+                    Base Score
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">
+                    Violations
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">
+                    Penalty
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">
+                    Final Score
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">
+                    Submitted
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -264,25 +309,40 @@ export default function TeacherSubmissions() {
                   const hasPenalty = (submission.violation_count || 0) > 3;
                   const statusBadge = getStatusBadge(submission.status);
                   const isNotStarted = submission.status === "not_started";
-                  
+
                   return (
-                    <tr key={submission.id || submission.student_id} className={`hover:bg-slate-50 transition-colors ${
-                      hasPenalty ? 'bg-red-50/30' : isNotStarted ? 'bg-slate-50/50' : ''
-                    }`}>
+                    <tr
+                      key={submission.id || submission.student_id}
+                      className={`hover:bg-slate-50 transition-colors ${
+                        hasPenalty
+                          ? "bg-red-50/30"
+                          : isNotStarted
+                            ? "bg-slate-50/50"
+                            : ""
+                      }`}
+                    >
                       <td className="px-6 py-4">
                         <div>
-                          <p className="font-medium text-slate-900">{submission.users?.full_name}</p>
-                          <p className="text-xs text-slate-500">{submission.users?.email}</p>
+                          <p className="font-medium text-slate-900">
+                            {submission.users?.full_name}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {submission.users?.email}
+                          </p>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.text}`}>
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.text}`}
+                        >
                           {statusBadge.label}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="font-semibold text-slate-900">
-                          {isNotStarted ? "-" : `${submission.base_score || 0}/${submission.max_score || 0}`}
+                          {isNotStarted
+                            ? "-"
+                            : `${submission.base_score || 0}/${submission.max_score || 0}`}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -293,8 +353,8 @@ export default function TeacherSubmissions() {
                             onClick={() => handleViewViolations(submission)}
                             className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                               hasPenalty
-                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                                : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                                ? "bg-red-100 text-red-700 hover:bg-red-200"
+                                : "bg-amber-100 text-amber-700 hover:bg-amber-200"
                             }`}
                           >
                             <PiWarningDuotone size={16} />
@@ -303,13 +363,17 @@ export default function TeacherSubmissions() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`font-semibold ${hasPenalty ? 'text-red-600' : 'text-slate-400'}`}>
-                          {isNotStarted ? "-" : `-${submission.penalty_score || 0}`}
+                        <span
+                          className={`font-semibold ${hasPenalty ? "text-red-600" : "text-slate-400"}`}
+                        >
+                          {isNotStarted
+                            ? "-"
+                            : `-${submission.penalty_score || 0}`}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         <span className="font-bold text-lg text-slate-900">
-                          {isNotStarted ? "-" : (submission.final_score || 0)}
+                          {isNotStarted ? "-" : submission.final_score || 0}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -319,7 +383,8 @@ export default function TeacherSubmissions() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
-                          {submission.status === 'submitted' && submission.id ? (
+                          {submission.status === "submitted" &&
+                          submission.id ? (
                             <>
                               <button
                                 onClick={() => handleViewResponses(submission)}
@@ -329,12 +394,14 @@ export default function TeacherSubmissions() {
                                 View Answers
                               </button>
                               <button
-                                onClick={() => handleReleaseScore(submission.id)}
+                                onClick={() =>
+                                  handleReleaseScore(submission.id)
+                                }
                                 disabled={submission.score_released}
                                 className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                                   submission.score_released
-                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                    : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                    : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
                                 }`}
                               >
                                 {submission.score_released ? (
@@ -351,9 +418,13 @@ export default function TeacherSubmissions() {
                               </button>
                             </>
                           ) : isNotStarted ? (
-                            <span className="text-xs text-slate-400 italic">No submission yet</span>
-                          ) : submission.status === 'in_progress' ? (
-                            <span className="text-xs text-blue-600 italic">Quiz in progress...</span>
+                            <span className="text-xs text-slate-400 italic">
+                              No submission yet
+                            </span>
+                          ) : submission.status === "in_progress" ? (
+                            <span className="text-xs text-blue-600 italic">
+                              Quiz in progress...
+                            </span>
                           ) : null}
                         </div>
                       </td>
@@ -372,9 +443,13 @@ export default function TeacherSubmissions() {
               <div className="p-6 border-b border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-bold text-slate-900">Student Responses</h2>
+                    <h2 className="text-xl font-bold text-slate-900">
+                      Student Responses
+                    </h2>
                     <p className="text-sm text-slate-500 mt-1">
-                      {selectedSubmission.users?.full_name} - Score: {selectedSubmission.final_score}/{selectedSubmission.max_score}
+                      {selectedSubmission.users?.full_name} - Score:{" "}
+                      {selectedSubmission.final_score}/
+                      {selectedSubmission.max_score}
                     </p>
                   </div>
                   <button
@@ -390,15 +465,20 @@ export default function TeacherSubmissions() {
                   {studentResponses.map((response, index) => {
                     const question = response.quiz_questions;
                     const isEditing = editingScore === response.id;
-                    
+
                     return (
-                      <div key={response.id} className="bg-slate-50 rounded-xl p-5 border border-slate-200">
+                      <div
+                        key={response.id}
+                        className="bg-slate-50 rounded-xl p-5 border border-slate-200"
+                      >
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex-1">
                             <h3 className="font-semibold text-slate-900 mb-1">
                               {index + 1}. {question.question_text}
                             </h3>
-                            <p className="text-xs text-slate-500 uppercase">{question.question_type}</p>
+                            <p className="text-xs text-slate-500 uppercase">
+                              {question.question_type}
+                            </p>
                           </div>
                           <div className="flex items-center gap-2">
                             {isEditing ? (
@@ -410,15 +490,20 @@ export default function TeacherSubmissions() {
                                   defaultValue={response.points_earned || 0}
                                   className="w-16 px-2 py-1 border border-slate-300 rounded text-sm"
                                   onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      handleScoreOverride(response.id, parseFloat(e.target.value));
-                                    } else if (e.key === 'Escape') {
+                                    if (e.key === "Enter") {
+                                      handleScoreOverride(
+                                        response.id,
+                                        parseFloat(e.target.value),
+                                      );
+                                    } else if (e.key === "Escape") {
                                       setEditingScore(null);
                                     }
                                   }}
                                   autoFocus
                                 />
-                                <span className="text-sm text-slate-600">/ {question.points}</span>
+                                <span className="text-sm text-slate-600">
+                                  / {question.points}
+                                </span>
                                 <button
                                   onClick={() => setEditingScore(null)}
                                   className="text-slate-400 hover:text-slate-600"
@@ -431,15 +516,17 @@ export default function TeacherSubmissions() {
                                 onClick={() => setEditingScore(response.id)}
                                 className={`px-3 py-1 rounded-lg text-sm font-semibold transition-colors ${
                                   response.is_correct
-                                    ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
-                                    : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                    ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                                    : "bg-red-100 text-red-700 hover:bg-red-200"
                                 }`}
                               >
                                 {response.points_earned || 0}/{question.points}
                               </button>
                             )}
                             {response.manually_graded && (
-                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Manual</span>
+                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                Manual
+                              </span>
                             )}
                           </div>
                         </div>
@@ -447,29 +534,41 @@ export default function TeacherSubmissions() {
                         {/* Show correct answer */}
                         {question.question_type === "multiple_choice" && (
                           <div className="mb-3">
-                            <p className="text-xs font-semibold text-slate-600 mb-1">Correct Answer:</p>
+                            <p className="text-xs font-semibold text-slate-600 mb-1">
+                              Correct Answer:
+                            </p>
                             <p className="text-sm text-emerald-700 font-medium">
-                              {question.quiz_choices?.find(c => c.is_correct)?.choice_text || "N/A"}
+                              {question.quiz_choices?.find((c) => c.is_correct)
+                                ?.choice_text || "N/A"}
                             </p>
                           </div>
                         )}
 
                         {question.question_type === "checkboxes" && (
                           <div className="mb-3">
-                            <p className="text-xs font-semibold text-slate-600 mb-1">Correct Answers:</p>
+                            <p className="text-xs font-semibold text-slate-600 mb-1">
+                              Correct Answers:
+                            </p>
                             <div className="flex flex-wrap gap-2">
-                              {question.quiz_choices?.filter(c => c.is_correct).map(choice => (
-                                <span key={choice.id} className="text-sm bg-emerald-100 text-emerald-700 px-2 py-1 rounded">
-                                  {choice.choice_text}
-                                </span>
-                              ))}
+                              {question.quiz_choices
+                                ?.filter((c) => c.is_correct)
+                                .map((choice) => (
+                                  <span
+                                    key={choice.id}
+                                    className="text-sm bg-emerald-100 text-emerald-700 px-2 py-1 rounded"
+                                  >
+                                    {choice.choice_text}
+                                  </span>
+                                ))}
                             </div>
                           </div>
                         )}
 
                         {question.question_type === "short_answer" && (
                           <div className="mb-3">
-                            <p className="text-xs font-semibold text-slate-600 mb-1">Expected Answer:</p>
+                            <p className="text-xs font-semibold text-slate-600 mb-1">
+                              Expected Answer:
+                            </p>
                             <p className="text-sm text-emerald-700 font-medium">
                               {question.quiz_choices?.[0]?.choice_text || "N/A"}
                             </p>
@@ -478,24 +577,33 @@ export default function TeacherSubmissions() {
 
                         {/* Show student answer */}
                         <div>
-                          <p className="text-xs font-semibold text-slate-600 mb-1">Student Answer:</p>
+                          <p className="text-xs font-semibold text-slate-600 mb-1">
+                            Student Answer:
+                          </p>
                           {response.answer_text ? (
                             <p className="text-sm text-slate-900 bg-white p-3 rounded border border-slate-200">
                               {response.answer_text}
                             </p>
                           ) : response.selected_choice_ids?.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
-                              {response.selected_choice_ids.map(choiceId => {
-                                const choice = question.quiz_choices?.find(c => c.id === choiceId);
+                              {response.selected_choice_ids.map((choiceId) => {
+                                const choice = question.quiz_choices?.find(
+                                  (c) => c.id === choiceId,
+                                );
                                 return choice ? (
-                                  <span key={choiceId} className="text-sm bg-white border border-slate-200 px-3 py-1 rounded">
+                                  <span
+                                    key={choiceId}
+                                    className="text-sm bg-white border border-slate-200 px-3 py-1 rounded"
+                                  >
                                     {choice.choice_text}
                                   </span>
                                 ) : null;
                               })}
                             </div>
                           ) : (
-                            <p className="text-sm text-slate-400 italic">No answer provided</p>
+                            <p className="text-sm text-slate-400 italic">
+                              No answer provided
+                            </p>
                           )}
                         </div>
                       </div>
@@ -514,9 +622,13 @@ export default function TeacherSubmissions() {
               <div className="p-6 border-b border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-bold text-slate-900">Focus Violations</h2>
+                    <h2 className="text-xl font-bold text-slate-900">
+                      Focus Violations
+                    </h2>
                     <p className="text-sm text-slate-500 mt-1">
-                      {selectedSubmission.users?.full_name} - {violations.length} event{violations.length !== 1 ? 's' : ''}
+                      {selectedSubmission.users?.full_name} -{" "}
+                      {violations.length} event
+                      {violations.length !== 1 ? "s" : ""}
                     </p>
                   </div>
                   <button
@@ -533,19 +645,27 @@ export default function TeacherSubmissions() {
                     <div
                       key={violation.id}
                       className={`flex items-center justify-between p-3 rounded-lg ${
-                        violation.event_type === 'blur' || violation.event_type === 'hidden'
-                          ? 'bg-red-50 border border-red-200'
-                          : 'bg-slate-50 border border-slate-200'
+                        violation.event_type === "blur" ||
+                        violation.event_type === "hidden"
+                          ? "bg-red-50 border border-red-200"
+                          : "bg-slate-50 border border-slate-200"
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-sm font-mono text-slate-500">#{index + 1}</span>
+                        <span className="text-sm font-mono text-slate-500">
+                          #{index + 1}
+                        </span>
                         <div>
-                          <p className="font-medium text-slate-900 capitalize">{violation.event_type}</p>
-                          <p className="text-xs text-slate-500">{formatDate(violation.timestamp)}</p>
+                          <p className="font-medium text-slate-900 capitalize">
+                            {violation.event_type}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {formatDate(violation.timestamp)}
+                          </p>
                         </div>
                       </div>
-                      {(violation.event_type === 'blur' || violation.event_type === 'hidden') && (
+                      {(violation.event_type === "blur" ||
+                        violation.event_type === "hidden") && (
                         <PiWarningDuotone size={20} className="text-red-500" />
                       )}
                     </div>

@@ -3,7 +3,6 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./index.css";
 import App from "./App.jsx";
 import { AuthProvider } from "./context/authContext.jsx";
-import { RoomProvider } from "./context/roomContext.jsx";
 import { SidebarProvider } from "./context/sidebarContext.jsx";
 import { Toaster } from "react-hot-toast";
 
@@ -13,9 +12,7 @@ createRoot(document.getElementById("root")).render(
   <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
     <AuthProvider>
       <SidebarProvider>
-        <RoomProvider>
-          <App />
-        </RoomProvider>
+        <App />
       </SidebarProvider>
     </AuthProvider>
     <Toaster

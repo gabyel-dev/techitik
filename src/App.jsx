@@ -23,6 +23,7 @@ import StudentScoreView from "./components/Quiz/StudentScoreView.jsx";
 import QuizAnalytics from "./components/Quiz/QuizAnalytics.jsx";
 import RoomAnalytics from "./components/Quiz/RoomAnalytics.jsx";
 import QuizRankings from "./pages/QuizRankings.jsx";
+import RoomWrapper from "./components/RoomWrapper.jsx";
 
 const App = () => {
   return (
@@ -56,15 +57,14 @@ const App = () => {
           <Route path="classes" element={<StudentClasses />} />
           <Route path="achievements" element={<StudentAchievements />} />
           <Route path="settings" element={<StudentSettings />} />
-          <Route path="room/:roomId" element={<RoomDetails />} />
-          <Route
-            path="room/:roomId/quiz/:quizId/take"
-            element={<StudentQuizTaking />}
-          />
-          <Route
-            path="room/:roomId/quiz/:quizId/score"
-            element={<StudentScoreView />}
-          />
+          
+          {/* Room routes wrapped with RoomProvider */}
+          <Route path="room/:roomId" element={<RoomWrapper />}>
+            <Route index element={<RoomDetails />} />
+            <Route path="quiz/:quizId/take" element={<StudentQuizTaking />} />
+            <Route path="quiz/:quizId/score" element={<StudentScoreView />} />
+            <Route path="quiz/:quizId/rankings" element={<QuizRankings />} />
+          </Route>
         </Route>
 
         <Route
@@ -90,17 +90,15 @@ const App = () => {
           <Route path="archived-rooms" element={<ArchivedRooms />} />
           <Route path="students" element={<TeacherStudents />} />
           <Route path="settings" element={<TeacherSettings />} />
-          <Route path="room/:roomId" element={<RoomDetails />} />
-          <Route path="room/:roomId/quiz/:quizId" element={<QuizBuilder />} />
-          <Route
-            path="room/:roomId/quiz/:quizId/submissions"
-            element={<TeacherSubmissionsEnhanced />}
-          />
-          <Route path="room/:roomId/analytics" element={<RoomAnalytics />} />
-          <Route
-            path="room/:roomId/quiz/:quizId/rankings"
-            element={<QuizRankings />}
-          />
+          
+          {/* Room routes wrapped with RoomProvider */}
+          <Route path="room/:roomId" element={<RoomWrapper />}>
+            <Route index element={<RoomDetails />} />
+            <Route path="quiz/:quizId" element={<QuizBuilder />} />
+            <Route path="quiz/:quizId/submissions" element={<TeacherSubmissionsEnhanced />} />
+            <Route path="analytics" element={<RoomAnalytics />} />
+            <Route path="quiz/:quizId/rankings" element={<QuizRankings />} />
+          </Route>
         </Route>
 
         {/* Standalone Analytics Routes */}

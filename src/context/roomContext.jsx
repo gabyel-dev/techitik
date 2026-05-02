@@ -1,54 +1,75 @@
-import { createContext, useContext, useState, useCallback } from "react";
-import { GetRooms, CreateRoom as createRoomAPI } from "../api/rooms";
+import { createContext, useContext, useState, useEffect } from "react";
+import { GetRoomDetails } from "../api/rooms";
+import { GetRoomQuizzes } from "../api/quiz";
 
-const RoomContext = createContext(null);
+const RoomContext = createContext();
 
-export const useRooms = () => useContext(RoomContext);
+export const useRoom = () => {
+  const context = useContext(RoomContext);
+  if (!context) {
+    throw new Error("useRoom must be used within RoomProvider");
+  }
+  return context;
+};
 
-export const RoomProvider = ({ children }) => {
-  const [rooms, setRooms] = useState([]);
+export const RoomProvider = ({ children, roomId }) => {
+  const [room, setRoom] = useState(null);
+  const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const fetchRooms = useCallback(async () => {
+  useEffect(() => {
+    if (!roomId) return;
+
+    // Reset loading state when roomId changes
     setLoading(true);
+    setRoom(null);
+    setQuizzes([]);
+
+    const fetchRoomData = async () => {
+      try {
+        const [roomResponse, quizzesResponse] = await Promise.all([
+          GetRoomDetails(roomId),
+          GetRoomQuizzes(roomId),
+        ]);
+        setRoom(roomResponse.data);
+        setQuizzes(quizzesResponse.data || []);
+        setError(null);
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to load room");
+        console.error("Room fetch error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoomData();
+
+    // Poll for updates every 5 seconds
+    const interval = setInterval(fetchRoomData, 5000);
+    return () => clearInterval(interval);
+  }, [roomId]);
+
+  const refreshRoom = async () => {
     try {
-      const data = await GetRooms();
-      setRooms(data.data || []);
-    } catch (error) {
-      console.error("Failed to fetch rooms:", error);
-      setRooms([]);
-    } finally {
-      setLoading(false);
+      const [roomResponse, quizzesResponse] = await Promise.all([
+        GetRoomDetails(roomId),
+        GetRoomQuizzes(roomId),
+      ]);
+      setRoom(roomResponse.data);
+      setQuizzes(quizzesResponse.data || []);
+    } catch (err) {
+      console.error("Room refresh error:", err);
     }
-  }, []);
+  };
 
-  const createRoom = useCallback(async (payload) => {
-    const response = await createRoomAPI(payload);
-    const newRoom = response.data;
-    setRooms((prev) => [newRoom, ...prev]);
-    return response;
-  }, []);
-
-  const updateRoom = useCallback((roomId, updates) => {
-    setRooms((prev) =>
-      prev.map((room) => (room.id === roomId ? { ...room, ...updates } : room)),
-    );
-  }, []);
-
-  const deleteRoom = useCallback((roomId) => {
-    setRooms((prev) => prev.filter((room) => room.id !== roomId));
-  }, []);
+  const getQuizById = (quizId) => {
+    return quizzes.find((q) => q.id === quizId);
+  };
 
   return (
     <RoomContext.Provider
-      value={{
-        rooms,
-        loading,
-        fetchRooms,
-        createRoom,
-        updateRoom,
-        deleteRoom,
-      }}
+      value={{ room, quizzes, loading, error, refreshRoom, getQuizById }}
     >
       {children}
     </RoomContext.Provider>

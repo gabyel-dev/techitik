@@ -1,27 +1,27 @@
-import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useRooms } from "../../context/roomContext";
+import { useRooms } from "../../context/roomsContext";
 import { useSidebar } from "../../context/sidebarContext";
-import {
-  PiUsersDuotone,
-  PiArrowRightDuotone,
-} from "react-icons/pi";
+import { PiUsersDuotone, PiArrowRightDuotone } from "react-icons/pi";
 
 export const GetRoomLists = () => {
-  const { rooms, fetchRooms, loading } = useRooms();
-  const { isOpen } = useSidebar();
+  const { rooms, loading } = useRooms();
+  const { isOpen, setIsOpen, isDesktop } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    fetchRooms();
-  }, [fetchRooms]);
+  const handleRoomClick = (roomId) => {
+    navigate(`room/${roomId}`);
+    // Close sidebar on mobile after clicking
+    if (!isDesktop) {
+      setTimeout(() => setIsOpen(false), 2000); // Delay to allow navigation before closing
+    }
+  };
 
   if (loading) {
     return (
       <div className="space-y-4 w-full px-4">
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin h-8 w-8 border-4 border-emerald-500 border-t-emerald-200 rounded-full"></div>
+          <div className="animate-spin h-6 w-6 border-4 border-emerald-500 border-t-emerald-400 rounded-full"></div>
         </div>
       </div>
     );
@@ -45,7 +45,7 @@ export const GetRoomLists = () => {
           return (
             <div
               key={room?.id}
-              onClick={() => navigate(`room/${room?.id}`)}
+              onClick={() => handleRoomClick(room?.id)}
               className={`group relative rounded-xl bg-[var(--secondary)] p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
                 isActive
                   ? "border-2 border-emerald-500 shadow-2xl shadow-emerald-500"

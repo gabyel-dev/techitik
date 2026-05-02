@@ -23,8 +23,11 @@ export default function StudentQuizTaking() {
   const [showWarning, setShowWarning] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [quizClosed, setQuizClosed] = useState(false);
+  const [startTime, setStartTime] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
   const saveTimeoutRef = useRef({});
   const lastViolationRef = useRef(0);
+  const timerIntervalRef = useRef(null);
 
   useEffect(() => {
     initializeQuiz();
@@ -156,7 +159,7 @@ export default function StudentQuizTaking() {
       const response = await LogViolation(attempt.id, eventType);
       if (response.data) {
         setAttempt(response.data);
-        const remaining = Math.max(0, 3 - response.data.violation_count);
+        const remaining = Math.max(0, 5 - response.data.violation_count);
         setShowWarning(true);
         
         if (remaining > 0) {
@@ -272,8 +275,8 @@ export default function StudentQuizTaking() {
     );
   }
 
-  const remainingWarnings = Math.max(0, 3 - (attempt.violation_count || 0));
-  const isPenalized = (attempt.violation_count || 0) > 3;
+  const remainingWarnings = Math.max(0, 5 - (attempt.violation_count || 0));
+  const isPenalized = (attempt.violation_count || 0) > 5;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
@@ -355,7 +358,7 @@ export default function StudentQuizTaking() {
               <PiEyeDuotone size={20} />
               <div className="text-sm">
                 <p className="font-semibold">
-                  {isPenalized ? `Penalty: -${attempt.penalty_score}` : `Warnings: ${remainingWarnings}/3`}
+                  {isPenalized ? `Penalty: -${attempt.penalty_score}` : `Warnings: ${remainingWarnings}/5`}
                 </p>
                 <p className="text-xs">
                   {isPenalized ? 'Points deducted' : 'Stay on this tab'}

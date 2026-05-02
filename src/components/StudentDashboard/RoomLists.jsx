@@ -9,11 +9,19 @@ import {
 import { GetStudentRooms } from "../../api/rooms";
 
 export const GetStudentRoomLists = () => {
-  const { isOpen } = useSidebar();
+  const { isOpen, setIsOpen, isDesktop } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const handleRoomClick = (roomId) => {
+    navigate(`room/${roomId}`);
+    // Close sidebar on mobile after clicking
+    if (!isDesktop) {
+      setIsOpen(false);
+    }
+  };
 
   useEffect(() => {
     const fetchStudentRooms = async () => {
@@ -59,7 +67,7 @@ export const GetStudentRoomLists = () => {
           return (
             <div
               key={room?.id}
-              onClick={() => navigate(`room/${room?.id}`)}
+              onClick={() => handleRoomClick(room?.id)}
               className={`group relative rounded-xl bg-[var(--bg)] p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
                 isActive
                   ? "border-2 border-emerald-500 shadow-md"

@@ -1,5 +1,10 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import {
+  useNavigate,
+  useParams,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
 import {
   GetRoomDetails,
   GetRoomRankings,
@@ -15,7 +20,7 @@ import {
 } from "../api/quiz";
 import { useAuth } from "../context/authContext";
 import Loader from "../components/loader";
-import { usePolling, useDebounce } from "../hooks/useOptimizedFetch";
+import { usePolling } from "../hooks/useOptimizedFetch";
 import {
   PiUsersDuotone,
   PiBookOpenDuotone,
@@ -39,8 +44,11 @@ import {
   PiClipboardDuotone,
   PiGearDuotone,
   PiUserDuotone,
+  PiArrowArcLeftDuotone,
+  PiArrowLeft,
 } from "react-icons/pi";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 
 export default function RoomDetails() {
   const navigate = useNavigate();
@@ -75,12 +83,9 @@ export default function RoomDetails() {
   }, [roomId]);
 
   // Use optimized polling hook (5 seconds interval, pauses when tab not visible)
-  const {
-    data: room,
-    loading: roomLoading,
-    error,
-    retry,
-  } = usePolling(fetchRoomData, 5000, [roomId]);
+  const { data: room, loading: roomLoading } = usePolling(fetchRoomData, 5000, [
+    roomId,
+  ]);
   const { data: quizzes = [] } = usePolling(fetchQuizzesData, 5000, [roomId]);
   const { data: rankings = [] } = usePolling(fetchRankingsData, 5000, [roomId]);
 
@@ -263,79 +268,96 @@ export default function RoomDetails() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          {/* Header Skeleton */}
-          <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm mb-6 overflow-hidden animate-pulse">
-            <div className="p-5 sm:p-6 lg:p-8 border-b border-slate-100">
-              <div className="h-8 bg-slate-200 rounded-lg w-2/3 mb-4"></div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                {[1, 2, 3, 4]?.map((i) => (
-                  <div key={i} className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-slate-200"></div>
-                    <div className="flex-1">
-                      <div className="h-3 bg-slate-200 rounded w-16 mb-2"></div>
-                      <div className="h-4 bg-slate-200 rounded w-24"></div>
+        {/* Background Image Skeleton */}
+        <div className="bg-slate-200 flex relative w-full h-80 overflow-hidden animate-pulse">
+          <div className="absolute right-4 bottom-4">
+            <div className="bg-white w-32 h-20 border border-slate-200"></div>
+          </div>
+          <div className="bottom-4 left-4 absolute flex flex-col">
+            <div className="h-4 bg-slate-400 rounded w-16 mb-2"></div>
+            <div className="h-10 bg-slate-400 rounded w-48"></div>
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+          {/* Breadcrumb Skeleton */}
+          <div className="flex gap-2 mb-4 animate-pulse">
+            <div className="h-4 bg-slate-200 rounded w-20"></div>
+            <div className="h-4 bg-slate-200 rounded w-24"></div>
+          </div>
+
+          {/* Header Section Skeleton */}
+          <div className="py-3 border-b border-slate-100 mb-6 animate-pulse">
+            <div className="flex justify-between items-center pb-3">
+              <div className="flex-1">
+                <div className="h-8 bg-slate-200 rounded w-64 mb-2"></div>
+                <div className="h-4 bg-slate-200 rounded w-40"></div>
+              </div>
+              <div className="h-10 w-10 bg-slate-200 rounded-lg"></div>
+            </div>
+
+            {/* Metadata Grid Skeleton */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-5 md:pt-8">
+              {[1, 2].map((i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-slate-200"></div>
+                  <div className="flex-1">
+                    <div className="h-3 bg-slate-200 rounded w-16 mb-2"></div>
+                    <div className="h-4 bg-slate-200 rounded w-24"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons Skeleton */}
+          <div className="flex gap-2 justify-end mb-6 animate-pulse">
+            <div className="h-11 bg-slate-200 rounded-lg w-28"></div>
+            <div className="h-11 bg-slate-200 rounded-lg w-32"></div>
+          </div>
+
+          {/* Main Content Grid Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Quizzes Section Skeleton */}
+            <div className="lg:col-span-2">
+              <div className="py-4 border-b border-slate-100 mb-4 animate-pulse">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-slate-200"></div>
+                    <div className="h-6 bg-slate-200 rounded w-24"></div>
+                  </div>
+                  <div className="h-11 bg-slate-200 rounded-lg w-28"></div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-white animate-pulse"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="h-5 bg-slate-200 rounded w-3/4 mb-2"></div>
+                        <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="h-6 w-20 bg-slate-200 rounded-full"></div>
+                        <div className="h-6 w-16 bg-slate-200 rounded-full"></div>
+                      </div>
+                    </div>
+                    <div className="pt-3 border-t border-slate-100">
+                      <div className="h-3 bg-slate-200 rounded w-32"></div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="p-4 sm:p-5 bg-slate-50/50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-              <div className="bg-white px-4 py-3 rounded-lg border border-slate-200 w-32">
-                <div className="h-3 bg-slate-200 rounded w-16 mb-2"></div>
-                <div className="h-6 bg-slate-200 rounded w-20"></div>
-              </div>
-              <div className="flex gap-2">
-                <div className="h-11 bg-slate-200 rounded-lg w-24"></div>
-                <div className="h-11 bg-slate-200 rounded-lg w-24"></div>
-                <div className="h-11 bg-slate-200 rounded-lg w-32"></div>
-              </div>
-            </div>
-          </div>
-
-          {/* Content Grid Skeleton */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Quizzes Section Skeleton */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-pulse">
-                <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-slate-200"></div>
-                    <div className="flex-1">
-                      <div className="h-5 bg-slate-200 rounded w-24 mb-2"></div>
-                      <div className="h-3 bg-slate-200 rounded w-16"></div>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-4 sm:p-6 space-y-3">
-                  {[1, 2, 3]?.map((i) => (
-                    <div
-                      key={i}
-                      className="p-4 sm:p-5 rounded-xl border border-slate-200 bg-slate-50"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <div className="h-5 bg-slate-200 rounded w-3/4 mb-2"></div>
-                          <div className="h-4 bg-slate-200 rounded w-1/2"></div>
-                        </div>
-                        <div className="flex gap-2">
-                          <div className="h-6 w-20 bg-slate-200 rounded-full"></div>
-                          <div className="h-6 w-16 bg-slate-200 rounded-full"></div>
-                        </div>
-                      </div>
-                      <div className="pt-3 border-t border-slate-100">
-                        <div className="h-3 bg-slate-200 rounded w-32"></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
 
             {/* Leaderboard Section Skeleton */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm overflow-hidden animate-pulse">
-                <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden animate-pulse">
+                <div className="px-5 py-4 border-b border-slate-100">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-slate-200"></div>
                     <div className="flex-1">
@@ -345,8 +367,8 @@ export default function RoomDetails() {
                   </div>
                 </div>
                 <div className="divide-y divide-slate-100">
-                  {[1, 2, 3, 4, 5]?.map((i) => (
-                    <div key={i} className="px-5 sm:px-6 py-4">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-slate-200"></div>
                         <div className="flex-1">
@@ -369,74 +391,116 @@ export default function RoomDetails() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex h-full items-center justify-center p-4">
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
-            <PiWarningDuotone size={32} className="text-red-600" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-900 mb-2">
-            Unable to Load Room
-          </h2>
-          <p className="text-sm text-slate-600 mb-6">{error}</p>
-          <div className="flex gap-3 justify-center">
-            <button
-              onClick={() => navigate(-1)}
-              className="px-4 py-2.5 bg-slate-100 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-200 transition-colors min-h-[44px]"
-            >
-              Go Back
-            </button>
-            <button
-              onClick={retry}
-              className="px-4 py-2.5 bg-primary-600 text-white text-sm font-semibold rounded-lg hover:bg-primary-700 transition-colors min-h-[44px] flex items-center gap-2"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <div className="bg-black flex relative w-full h-fit  overflow-hidden">
+        <img
+          src="/bg/bg.png"
+          alt="Room Background"
+          className="object-cover opacity-60 w-full max-h-80   relative "
+        />
+        <div className="  absolute  right-4 bottom-4 ">
+          <div className="bg-white w-fit px-4 py-3  border border-slate-200 flex-shrink-0">
+            <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">
+              Room Code
+            </p>
+            <p className="text-lg sm:text-xl font-bold text-[var(--primary)] uppercase tracking-wider">
+              {room?.room_code}
+            </p>
+          </div>
+        </div>
+
+        <div className=" bottom-4  left-4 absolute flex  flex-col">
+          <p className="text-xs text-slate-500 font-medium">Subject</p>
+          <p className="text-4xl uppercase font-semibold text-slate-50 truncate">
+            {room?.subject}
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         {/* Header Section */}
-        <div className="bg-white rounded-xl sm:rounded-2xl border border-slate-200 shadow-sm mb-6 ">
+        <div className="flex">
+          <Link
+            to={`/dashboard/t/${user.id}`}
+            replace={true}
+            className="flex items-center gap-2 "
+          >
+            <span className="text-[var(--primary)] text-xl ">/</span>{" "}
+            <p className="text-sm hover:underline">dashboard</p>
+            <span className="text-[var(--primary)] text-xl">/</span>
+          </Link>
+          <p className="flex items-center text-[var(--primary)]  text-sm">
+            &nbsp;&nbsp;room - {room?.room_code}
+          </p>
+        </div>
+
+        <div className=" overflow-hidden mb-6 ">
           {/* Title & Metadata */}
-          <div className="p-5 sm:p-6 lg:p-8 border-b border-slate-100">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 leading-tight">
-              {room?.name}
-            </h1>
+
+          <div className=" py-3 border-b border-slate-100">
+            <div className="flex justify-between w-full items-center pb-3">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
+                  {room?.name}
+                </h1>
+
+                <div className="flex items-center gap-2.5">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-500 truncate">
+                      By{" "}
+                      {room?.members?.find((m) => m.role === "teacher")?.user
+                        ?.full_name || "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowRoomSettings(!showRoomSettings)}
+                className="flex items-center justify-center gap-2   text-gray-500 text-sm font-medium  transition-all min-h-[44px]"
+              >
+                <PiGearDuotone size={20} />
+              </button>
+
+              <div className="absolute ">
+                {showRoomSettings && (
+                  <>
+                    <div
+                      className=" inset-0 z-40"
+                      onClick={() => setShowRoomSettings(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50 animate-fadeIn">
+                      <button
+                        onClick={() => {
+                          setShowRoomSettings(false);
+                          setShowRoomArchiveModal(true);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-amber-50 transition-colors"
+                      >
+                        <PiArchiveDuotone
+                          size={18}
+                          className="text-amber-600"
+                        />
+                        <span className="font-medium">Archive Room</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowRoomSettings(false);
+                          setShowRoomDeleteModal(true);
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <PiTrashDuotone size={18} />
+                        <span className="font-medium">Delete Room</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
 
             {/* Metadata Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              <div className="flex items-center gap-2.5">
-                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
-                  <PiUserDuotone size={18} className="text-purple-600" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs text-slate-500 font-medium">Teacher</p>
-                  <p className="text-sm font-semibold text-slate-900 truncate">
-                    {room?.members?.find((m) => m.role === "teacher")?.user
-                      ?.full_name || "N/A"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2.5">
-                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <PiBookOpenDuotone size={18} className="text-blue-600" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs text-slate-500 font-medium">Subject</p>
-                  <p className="text-sm font-semibold text-slate-900 truncate">
-                    {room?.subject}
-                  </p>
-                </div>
-              </div>
-
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-5 md:pt-8">
               <div className="flex items-center gap-2.5">
                 <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
                   <PiClipboardTextDuotone
@@ -452,34 +516,30 @@ export default function RoomDetails() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5">
-                <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-                  <PiCalendarDuotone size={18} className="text-amber-600" />
+              {user.role === "teacher" && (
+                <div className="flex items-center gap-2.5">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                    <PiCalendarDuotone size={18} className="text-amber-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs text-slate-500 font-medium">
+                      Created
+                    </p>
+                    <p className="text-sm font-semibold text-slate-900 truncate">
+                      {formatDate(room?.created_at)}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xs text-slate-500 font-medium">Created</p>
-                  <p className="text-sm font-semibold text-slate-900 truncate">
-                    {formatDate(room?.created_at)}
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
 
           {/* Actions Bar */}
-          <div className="p-4 sm:p-5 bg-slate-50/50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className=" bg-slate-50/50 w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             {/* Room Code */}
-            <div className="bg-white px-4 py-3 rounded-lg border border-slate-200 flex-shrink-0">
-              <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">
-                Room Code
-              </p>
-              <p className="text-lg sm:text-xl font-bold text-[var(--primary)] uppercase tracking-wider">
-                {room?.room_code}
-              </p>
-            </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 justify-end w-full">
               {isTeacher && (
                 <>
                   <button
@@ -493,61 +553,11 @@ export default function RoomDetails() {
                     <PiChartBarDuotone size={20} />
                     <span>Analytics</span>
                   </button>
-                  <button
-                    onClick={handleCreateQuiz}
-                    disabled={creatingQuiz}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
-                  >
-                    <PiPlusDuotone size={20} />
-                    <span>{creatingQuiz ? "Creating..." : "New Quiz"}</span>
-                  </button>
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowRoomSettings(!showRoomSettings)}
-                      className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-500 text-white text-sm font-medium rounded-lg hover:bg-slate-600 active:scale-95 transition-all min-h-[44px]"
-                    >
-                      <PiGearDuotone size={20} />
-                      <span>Settings</span>
-                    </button>
-                    {showRoomSettings && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-40"
-                          onClick={() => setShowRoomSettings(false)}
-                        />
-                        <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50 animate-fadeIn">
-                          <button
-                            onClick={() => {
-                              setShowRoomSettings(false);
-                              setShowRoomArchiveModal(true);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-amber-50 transition-colors"
-                          >
-                            <PiArchiveDuotone
-                              size={18}
-                              className="text-amber-600"
-                            />
-                            <span className="font-medium">Archive Room</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setShowRoomSettings(false);
-                              setShowRoomDeleteModal(true);
-                            }}
-                            className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                          >
-                            <PiTrashDuotone size={18} />
-                            <span className="font-medium">Delete Room</span>
-                          </button>
-                        </div>
-                      </>
-                    )}
-                  </div>
                 </>
               )}
               <button
                 onClick={handleShareInvite}
-                className="flex-shrink-0 flex items-center justify-center w-full sm:w-auto px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-emerald-600 active:scale-95 transition-all min-h-[44px]"
+                className=" flex items-center justify-center w-full sm:w-auto px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-emerald-600 active:scale-95 transition-all min-h-[44px]"
               >
                 <PiShareNetworkDuotone size={20} className="sm:mr-2" />
                 <span className="sm:inline">Share Invite</span>
@@ -594,29 +604,44 @@ export default function RoomDetails() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Quizzes Section - Takes 2 columns on large screens */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 ">
             <div className=" overflow-hidden">
               {/* Section Header */}
-              <div className="px-5 sm:px-6 py-4 sm:py-5 border-b border-slate-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                      <PiFileTextDuotone size={22} className="text-blue-600" />
+              <div className=" py-4 sm:py-5 border-b border-slate-100">
+                <div className="flex items-center w-full justify-between">
+                  <div className="flex justify-between items-center w-full">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                        <PiFileTextDuotone
+                          size={22}
+                          className="text-blue-600"
+                        />
+                      </div>
+                      <div>
+                        <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+                          Quizzes
+                        </h2>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-                        Quizzes
-                      </h2>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {quizzes?.length} total
-                      </p>
-                    </div>
+
+                    {user.role === "teacher" && (
+                      <button
+                        onClick={handleCreateQuiz}
+                        disabled={creatingQuiz}
+                        className=" flex w-fit items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+                      >
+                        <PiPlusDuotone size={20} />
+                        <span className="hidden md:block">
+                          {creatingQuiz ? "Creating..." : "New Quiz"}
+                        </span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Quizzes List */}
-              <div className="p-4 sm:p-6">
+              <div className=" ">
                 {quizzes?.length === 0 ? (
                   <div className="text-center py-16">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
@@ -626,7 +651,9 @@ export default function RoomDetails() {
                       No quizzes yet
                     </p>
                     <p className="text-xs text-slate-400 mt-1">
-                      Create your first quiz to get started
+                      {user.role === "teacher"
+                        ? "Create your first quiz to get started"
+                        : "No quizzes available for you to take"}
                     </p>
                   </div>
                 ) : (
@@ -711,7 +738,7 @@ export default function RoomDetails() {
                           {/* Metadata */}
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
                             <span className="font-medium">
-                              Created {formatDate(quiz.created_at)}
+                              Uploaded {formatDate(quiz.created_at)}
                             </span>
                             {quiz.due_date && (
                               <span className="font-medium">

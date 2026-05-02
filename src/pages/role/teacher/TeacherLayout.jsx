@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams, Outlet } from "react-router-dom";
 import { verifyTeacherAccess } from "../../../api/auth";
 import { useAuth } from "../../../context/authContext";
+import { RoomsProvider } from "../../../context/roomsContext";
 import Loader from "../../../components/loader";
 import Sidebar from "../../../components/Sidebar";
 import Header from "../../../components/TeacherDashboard/Header";
@@ -28,14 +29,16 @@ export default function TeacherLayout() {
   }
 
   return (
-    <div className="relative flex h-screen w-full bg-emerald-50 text-slate-800 font-[var(--font-body)]">
-      <Sidebar />
-      <main className="flex w-full flex-col overflow-hidden">
-        <Header />
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          <Outlet />
-        </div>
-      </main>
-    </div>
+    <RoomsProvider>
+      <div className="relative flex h-screen w-full bg-emerald-50 text-slate-800 font-[var(--font-body)]">
+        <Sidebar />
+        <main className="flex w-full flex-col overflow-hidden">
+          <Header />
+          <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </RoomsProvider>
   );
 }

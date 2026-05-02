@@ -18,9 +18,9 @@ export default function RoomInvite() {
 
     if (!user) {
       // Redirect to login with return URL
-      navigate("/", { 
+      navigate("/", {
         replace: true,
-        state: { returnUrl: `/invite/${roomCode}` }
+        state: { returnUrl: `/invite/${roomCode}` },
       });
       return;
     }
@@ -35,7 +35,7 @@ export default function RoomInvite() {
 
       if (response.success) {
         setRoomId(response.data.roomId);
-        
+
         if (response.data.alreadyMember) {
           setStatus("already_member");
           setMessage("You're already a member of this room!");
@@ -46,16 +46,18 @@ export default function RoomInvite() {
 
         // Redirect to room after 2 seconds
         setTimeout(() => {
-          const dashboardPath = user.role === "teacher" 
-            ? `/dashboard/t/${user.id}/room/${response.data.roomId}`
-            : `/dashboard/s/${user.id}/room/${response.data.roomId}`;
+          const dashboardPath =
+            user.role === "teacher"
+              ? `/dashboard/t/${user.id}/room/${response.data.roomId}`
+              : `/dashboard/s/${user.id}/room/${response.data.roomId}`;
           navigate(dashboardPath, { replace: true });
         }, 2000);
       }
     } catch (err) {
       setStatus("error");
       setMessage(
-        err.response?.data?.message || "Failed to join room. Invalid or expired invitation."
+        err.response?.data?.message ||
+          "Failed to join room. Invalid or expired invitation.",
       );
     }
   };
@@ -72,14 +74,17 @@ export default function RoomInvite() {
   }
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
+    <div className="flex h-screen items-center justify-center bg-emerald-50">
       <div className="max-w-md w-full mx-4">
         <div className="rounded-2xl border border-slate-200/60 bg-white p-8 shadow-lg text-center animate-fadeIn">
           {status === "success" && (
             <>
               <div className="flex justify-center mb-4">
                 <div className="h-16 w-16 rounded-full bg-emerald-100 flex items-center justify-center">
-                  <PiCheckCircleDuotone size={40} className="text-emerald-600" />
+                  <PiCheckCircleDuotone
+                    size={40}
+                    className="text-emerald-600"
+                  />
                 </div>
               </div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">
@@ -116,9 +121,7 @@ export default function RoomInvite() {
                   <PiWarningDuotone size={40} className="text-red-600" />
                 </div>
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                Oops!
-              </h2>
+              <h2 className="text-2xl font-bold text-slate-900 mb-2">Oops!</h2>
               <p className="text-slate-600 mb-6">{message}</p>
               <button
                 onClick={() => navigate("/")}

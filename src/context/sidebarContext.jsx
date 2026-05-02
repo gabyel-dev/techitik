@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./authContext";
-import { useRooms } from "./roomContext";
 
 const SidebarContext = createContext(null);
 

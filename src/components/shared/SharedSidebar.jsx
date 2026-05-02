@@ -12,6 +12,14 @@ export default function SharedSidebar({
   const navigate = useNavigate();
   const location = useLocation();
 
+  const handleNavClick = (path) => {
+    navigate(path);
+    // Close sidebar on mobile after clicking
+    if (!isDesktop) {
+      setIsOpen(false);
+    }
+  };
+
   const handleMouseEnter = () => {
     if (!isPinned && isDesktop) {
       setIsOpen(true);
@@ -71,7 +79,7 @@ export default function SharedSidebar({
           {navItems.map((item) => (
             <button
               key={item.name}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavClick(item.path)}
               className={`group relative flex items-center gap-3 rounded-xl transition-all duration-200 ${
                 isOpen ? "px-4 py-3" : "p-3 justify-center"
               } ${
@@ -138,7 +146,7 @@ export default function SharedSidebar({
             }`}
           >
             <button
-              onClick={() => navigate("settings")}
+              onClick={() => handleNavClick("settings")}
               className={`group flex items-center gap-3 rounded-xl text-slate-600 transition-all duration-200 ${
                 isOpen ? "px-4 py-3" : "p-3 justify-center"
               } ${

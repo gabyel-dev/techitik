@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useRooms } from "../../context/roomContext";
+import { CreateRoom } from "../../api/rooms";
 import {
   PiBooksDuotone,
   PiUsersDuotone,
@@ -7,8 +7,7 @@ import {
   PiXDuotone,
 } from "react-icons/pi";
 
-export const CreateRoomModal = ({ onClose }) => {
-  const { createRoom } = useRooms();
+export const CreateRoomModal = ({ onClose, onSuccess }) => {
   const [roomPayload, setRoomPayload] = useState({
     subject: "",
     room_name: "",
@@ -47,7 +46,7 @@ export const CreateRoomModal = ({ onClose }) => {
     setError("");
 
     try {
-      await createRoom({
+      await CreateRoom({
         room_name: roomPayload.room_name,
         subject: roomPayload.subject,
         section: `${sectionState.course} - ${sectionState.year}${sectionState.section}`,
@@ -55,6 +54,7 @@ export const CreateRoomModal = ({ onClose }) => {
       setRoomPayload({ subject: "", room_name: "" });
       setSectionState({ course: "", year: "", section: "" });
       setAgreedToTerms(false);
+      onSuccess?.();
       onClose?.();
     } catch (err) {
       setError(err.message || "Failed to create room");
