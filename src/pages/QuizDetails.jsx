@@ -1,85 +1,49 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { GetQuizDetails } from "../api/quiz";
+import { GetRoomDetails } from "../api/rooms";
 import { useAuth } from "../context/authContext";
-import { useRoom } from "../context/roomContext";
+import { formatDateTime } from "../utils/dateFormatter";
 import {
-  PiArrowLeftDuotone,
-  PiFileTextDuotone,
-  PiCalendarDuotone,
   PiClockDuotone,
   PiLockDuotone,
   PiLockOpenDuotone,
-  PiCheckCircleDuotone,
-  PiXCircleDuotone,
   PiPencilSimpleDuotone,
-  PiChartBarDuotone,
   PiTrophyDuotone,
   PiClipboardDuotone,
 } from "react-icons/pi";
 
 export default function QuizDetails() {
   const { roomId, quizId } = useParams();
-  const { user } = useAuth();
-  const { room } = useRoom();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [quiz, setQuiz] = useState(null);
+  const [room, setRoom] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchQuizDetails();
-  }, [quizId]);
+    const fetchData = async () => {
+      try {
+        const [quizRes, roomRes] = await Promise.all([
+          GetQuizDetails(quizId),
+          GetRoomDetails(roomId)
+        ]);
+        setQuiz(quizRes.data);
+        setRoom(roomRes.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [quizId, roomId]);
 
-  const fetchQuizDetails = async () => {
-    try {
-      const response = await GetQuizDetails(quizId);
-      setQuiz(response.data);
-    } catch (err) {
-      console.error("Failed to fetch quiz details:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   const isTeacher = user?.role === "teacher";
 
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <div className="animate-spin h-12 w-12 border-4 border-emerald-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-slate-600 font-medium">Loading quiz details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!quiz) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <p className="text-slate-600 mb-4">Quiz not found</p>
-          <button
-            onClick={() => navigate(-1)}
-            className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600"
-          >
-            Go Back
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (loading || !quiz || !user) return <div className="flex h-screen items-center justify-center"><div className="animate-spin h-12 w-12 border-4 border-emerald-500 border-t-transparent rounded-full"></div></div>;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -112,14 +76,14 @@ export default function QuizDetails() {
         <div className="py-6 mb-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-start gap-4 flex-1">
-              <div className="flex w-full items-center justify-between pt-10">
+              <div className="flex w-full items-center justify-between">
                 <div className="flex-1 min-w-0">
                   <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
                     {quiz.title}
                   </h1>
                   <div>
                     <p className="text-sm font-semibold text-slate-900">
-                      {formatDate(quiz.created_at)}
+                      {formatDateTime(quiz.created_at)}
                     </p>
                   </div>
                   {quiz.description && (
@@ -168,7 +132,7 @@ export default function QuizDetails() {
                 <div>
                   <p className="text-xs text-slate-500 font-medium">Due Date</p>
                   <p className="text-sm font-semibold text-slate-900">
-                    {formatDate(quiz.due_date)}
+                    {formatDateTime(quiz.due_date)}
                   </p>
                 </div>
               </div>

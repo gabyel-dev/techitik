@@ -1,5 +1,5 @@
 import { useLocation } from "react-router-dom";
-import { Dashboard, FolderOpen, Award } from "@duo-icons/react";
+import { Dashboard, Award } from "@duo-icons/react";
 import { GetStudentRoomLists } from "./StudentDashboard/RoomLists";
 import SharedSidebar from "./shared/SharedSidebar";
 
@@ -12,12 +12,6 @@ export default function StudentSidebar() {
       icon: Dashboard,
       path: ".",
       isActive: location.pathname.split("/").length === 4 && !location.pathname.includes("/room/"),
-    },
-    {
-      name: "My Classes",
-      icon: FolderOpen,
-      path: "classes",
-      isActive: location.pathname.includes("/classes"),
     },
     {
       name: "Achievements",

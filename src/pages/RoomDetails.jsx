@@ -1,10 +1,6 @@
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
-import {
-  useNavigate,
-  useParams,
-  useLocation,
-  Navigate,
-} from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   GetRoomDetails,
   GetRoomRankings,
@@ -18,9 +14,9 @@ import {
   ArchiveQuiz,
   DeleteQuiz,
 } from "../api/quiz";
-import { useAuth } from "../context/authContext";
 import Loader from "../components/loader";
-import { usePolling } from "../hooks/useOptimizedFetch";
+import { useAuth } from "../context/authContext";
+import { formatDate } from "../utils/dateFormatter";
 import {
   PiUsersDuotone,
   PiBookOpenDuotone,
@@ -49,13 +45,17 @@ import {
 } from "react-icons/pi";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
+import { useWindowScroll } from "../utils/useWindowScroll";
 
 export default function RoomDetails() {
   const navigate = useNavigate();
   const location = useLocation();
-
   const { roomId } = useParams();
   const { user } = useAuth();
+  const [room, setRoom] = useState(null);
+  const [quizzes, setQuizzes] = useState([]);
+  const [rankings, setRankings] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [creatingQuiz, setCreatingQuiz] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -63,65 +63,49 @@ export default function RoomDetails() {
   const [showRoomDeleteModal, setShowRoomDeleteModal] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [processing, setProcessing] = useState(false);
-  const [openDropdown, setOpenDropdown] = useState(null);
   const [showRoomSettings, setShowRoomSettings] = useState(false);
-  const mountedRef = useRef(true);
+  const lastY = useRef(0);
+  const { y } = useWindowScroll();
 
-  // Optimized data fetching with polling (only when tab is visible)
-  const fetchRoomData = useCallback(async () => {
-    const response = await GetRoomDetails(roomId);
-    return response.data;
-  }, [roomId]);
-
-  const fetchQuizzesData = useCallback(async () => {
-    const response = await GetRoomQuizzes(roomId);
-    return response.data || [];
-  }, [roomId]);
-
-  const fetchRankingsData = useCallback(async () => {
-    const response = await GetRoomRankings(roomId);
-    return response.data || [];
-  }, [roomId]);
-
-  // Use optimized polling hook (5 seconds interval, pauses when tab not visible)
-  const { data: room, loading: roomLoading } = usePolling(fetchRoomData, 5000, [
-    roomId,
-  ]);
-  const { data: quizzes = [] } = usePolling(fetchQuizzesData, 5000, [roomId]);
-  const { data: rankings = [] } = usePolling(fetchRankingsData, 5000, [roomId]);
-
-  const loading = roomLoading;
-
-  // Memoized computed values to prevent unnecessary recalculations
-  const isTeacher = useMemo(() => {
-    return (
-      room?.members?.find((m) => m.user?.id === user?.id)?.role === "teacher"
-    );
-  }, [room?.members, user?.id]);
-
-  const currentUserRanking = useMemo(() => {
-    return rankings?.find((r) => r.user_id === user?.id);
-  }, [rankings, user?.id]);
-
-  // Cleanup on unmount
   useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
+    fetchData();
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
+  }, [roomId]);
 
-  const formatDate = useCallback((dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  }, []);
+  useEffect(() => {
+    const diff = y - lastY.current;
 
-  const handleCreateQuiz = useCallback(async () => {
-    if (!mountedRef.current) return;
+    if (diff > 0) {
+      setShowRoomSettings(false);
+    }
 
+    console.log(y, lastY);
+    lastY.current = y;
+  }, [y]);
+
+  const fetchData = async () => {
+    try {
+      const [roomRes, quizzesRes, rankingsRes] = await Promise.all([
+        GetRoomDetails(roomId),
+        GetRoomQuizzes(roomId),
+        GetRoomRankings(roomId),
+      ]);
+      setRoom(roomRes.data);
+      setQuizzes(quizzesRes.data || []);
+      setRankings(rankingsRes.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isTeacher =
+    room?.members?.find((m) => m.user?.id === user?.id)?.role === "teacher";
+  const currentUserRanking = rankings?.find((r) => r.user_id === user?.id);
+
+  const handleCreateQuiz = async () => {
     try {
       setCreatingQuiz(true);
       const response = await CreateQuiz({
@@ -129,31 +113,23 @@ export default function RoomDetails() {
         title: "Untitled Quiz",
         description: "",
       });
-
       const quizId = response.data.id;
       const teacherId = user.id;
-
       if (location.pathname.includes("/dashboard/t/")) {
         navigate(`/dashboard/t/${teacherId}/room/${roomId}/quiz/${quizId}`);
       } else {
         navigate(`quiz/${quizId}`);
       }
-
       toast.success("Quiz created successfully!");
     } catch (err) {
-      if (mountedRef.current) {
-        toast.error(err.response?.data?.message || "Failed to create quiz");
-      }
+      toast.error(err.response?.data?.message || "Failed to create quiz");
     } finally {
-      if (mountedRef.current) {
-        setCreatingQuiz(false);
-      }
+      setCreatingQuiz(false);
     }
-  }, [roomId, user.id, location.pathname, navigate]);
+  };
 
-  const handleShareInvite = useCallback(async () => {
+  const handleShareInvite = async () => {
     const inviteUrl = `${window.location.origin}/invite/${room?.room_code}`;
-
     try {
       if (navigator.share) {
         await navigator.share({
@@ -166,105 +142,83 @@ export default function RoomDetails() {
         toast.success("Invite copied!");
       }
     } catch (err) {
-      console.error("Share failed:", err);
+      console.error(err);
     }
-  }, [room?.room_code, room?.name]);
+  };
 
-  const handleToggleQuizStatus = useCallback(async (quiz) => {
-    if (!mountedRef.current) return;
-
+  const handleToggleQuizStatus = async (quiz) => {
     try {
-      const newStatus = !quiz.is_open;
-      await ToggleQuizStatus(quiz.id, newStatus);
-      toast.success(`Quiz ${newStatus ? "opened" : "closed"} successfully`);
+      await ToggleQuizStatus(quiz.id, !quiz.is_open);
+      toast.success(`Quiz ${!quiz.is_open ? "opened" : "closed"} successfully`);
+      fetchData();
     } catch (err) {
-      if (mountedRef.current) {
-        toast.error(
-          err.response?.data?.message || "Failed to update quiz status",
-        );
-      }
+      toast.error(
+        err.response?.data?.message || "Failed to update quiz status",
+      );
     }
-  }, []);
+  };
 
-  const handleArchiveQuiz = useCallback(async () => {
-    if (!selectedQuiz || !mountedRef.current) return;
-
+  const handleArchiveQuiz = async () => {
+    if (!selectedQuiz) return;
     try {
       setProcessing(true);
       await ArchiveQuiz(selectedQuiz.id);
       toast.success("Quiz archived successfully");
       setShowArchiveModal(false);
       setSelectedQuiz(null);
+      fetchData();
     } catch (err) {
-      if (mountedRef.current) {
-        toast.error(err.response?.data?.message || "Failed to archive quiz");
-      }
+      toast.error(err.response?.data?.message || "Failed to archive quiz");
     } finally {
-      if (mountedRef.current) {
-        setProcessing(false);
-      }
+      setProcessing(false);
     }
-  }, [selectedQuiz]);
+  };
 
-  const handleDeleteQuiz = useCallback(async () => {
-    if (!selectedQuiz || !mountedRef.current) return;
-
+  const handleDeleteQuiz = async () => {
+    if (!selectedQuiz) return;
     try {
       setProcessing(true);
       await DeleteQuiz(selectedQuiz.id);
       toast.success("Quiz deleted successfully");
       setShowDeleteModal(false);
       setSelectedQuiz(null);
+      fetchData();
     } catch (err) {
-      if (mountedRef.current) {
-        toast.error(err.response?.data?.message || "Failed to delete quiz");
-      }
+      toast.error(err.response?.data?.message || "Failed to delete quiz");
     } finally {
-      if (mountedRef.current) {
-        setProcessing(false);
-      }
+      setProcessing(false);
     }
-  }, [selectedQuiz]);
+  };
 
-  const handleArchiveRoom = useCallback(async () => {
-    if (!mountedRef.current) return;
-
+  const handleArchiveRoom = async () => {
     try {
       setProcessing(true);
       await ArchiveRoom(roomId);
       toast.success("Room archived successfully");
       setShowRoomArchiveModal(false);
+      window.dispatchEvent(new Event("roomUpdated"));
       navigate(-1);
     } catch (err) {
-      if (mountedRef.current) {
-        toast.error(err.response?.data?.message || "Failed to archive room");
-      }
+      toast.error(err.response?.data?.message || "Failed to archive room");
     } finally {
-      if (mountedRef.current) {
-        setProcessing(false);
-      }
+      setProcessing(false);
     }
-  }, [roomId, navigate]);
+  };
 
-  const handleDeleteRoom = useCallback(async () => {
-    if (!mountedRef.current) return;
-
+  const handleDeleteRoom = async () => {
     try {
       setProcessing(true);
       await DeleteRoom(roomId);
       toast.success("Room moved to recycle bin");
       setShowRoomDeleteModal(false);
+      window.dispatchEvent(new Event("roomUpdated"));
       navigate(-1);
     } catch (err) {
-      if (mountedRef.current) {
-        toast.error(err.response?.data?.message || "Failed to delete room");
-      }
+      toast.error(err.response?.data?.message || "Failed to delete room");
     } finally {
-      if (mountedRef.current) {
-        setProcessing(false);
-      }
+      setProcessing(false);
     }
-  }, [roomId, navigate]);
+  };
 
   if (loading) {
     return (
@@ -411,9 +365,9 @@ export default function RoomDetails() {
           </div>
         </div>
 
-        <div className=" bottom-4  left-4 absolute flex  flex-col">
+        <div className=" bottom-4  left-4 absolute flex flex-1 min-w-0  flex-col">
           <p className="text-xs text-slate-500 font-medium">Subject</p>
-          <p className="text-4xl uppercase font-semibold text-slate-50 truncate">
+          <p className="text-xs md:text-4xl uppercase font-semibold text-slate-50 truncate text-shadow-2xs">
             {room?.subject}
           </p>
         </div>
@@ -456,47 +410,49 @@ export default function RoomDetails() {
                   </div>
                 </div>
               </div>
-              <button
-                onClick={() => setShowRoomSettings(!showRoomSettings)}
-                className="flex items-center justify-center gap-2   text-gray-500 text-sm font-medium  transition-all min-h-[44px]"
-              >
-                <PiGearDuotone size={20} />
-              </button>
+              <div>
+                <button
+                  onClick={() => setShowRoomSettings(!showRoomSettings)}
+                  className="flex items-center justify-center gap-2   text-gray-500 text-sm font-medium  transition-all min-h-[44px]"
+                >
+                  <PiGearDuotone size={20} />
+                </button>
 
-              <div className="absolute ">
-                {showRoomSettings && (
-                  <>
-                    <div
-                      className=" inset-0 z-40"
-                      onClick={() => setShowRoomSettings(false)}
-                    />
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50 animate-fadeIn">
-                      <button
-                        onClick={() => {
-                          setShowRoomSettings(false);
-                          setShowRoomArchiveModal(true);
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-amber-50 transition-colors"
-                      >
-                        <PiArchiveDuotone
-                          size={18}
-                          className="text-amber-600"
-                        />
-                        <span className="font-medium">Archive Room</span>
-                      </button>
-                      <button
-                        onClick={() => {
-                          setShowRoomSettings(false);
-                          setShowRoomDeleteModal(true);
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                      >
-                        <PiTrashDuotone size={18} />
-                        <span className="font-medium">Delete Room</span>
-                      </button>
-                    </div>
-                  </>
-                )}
+                <div className={`absolute -translate-y-2 translate-x-4`}>
+                  {showRoomSettings && (
+                    <>
+                      <div
+                        className=" inset-0 z-40"
+                        onClick={() => setShowRoomSettings(false)}
+                      />
+                      <div className="absolute right-0  w-56 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-2 animate-fadeIn">
+                        <button
+                          onClick={() => {
+                            setShowRoomSettings(false);
+                            setShowRoomArchiveModal(true);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-amber-50 transition-colors"
+                        >
+                          <PiArchiveDuotone
+                            size={18}
+                            className="text-amber-600"
+                          />
+                          <span className="font-medium">Archive Room</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setShowRoomSettings(false);
+                            setShowRoomDeleteModal(true);
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <PiTrashDuotone size={18} />
+                          <span className="font-medium">Delete Room</span>
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 

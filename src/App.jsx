@@ -4,13 +4,11 @@ import PublicRoute from "./components/publicRoutes.jsx";
 import ProtectedRoute from "./components/protectedRoutes.jsx";
 import TeacherLayout from "./pages/role/teacher/TeacherLayout.jsx";
 import TeacherDashboardContent from "./pages/role/teacher/TeacherDashboardContent.jsx";
-import TeacherQuizzes from "./pages/role/teacher/TeacherQuizzes.jsx";
 import TeacherStudents from "./pages/role/teacher/TeacherStudents.jsx";
 import TeacherSettings from "./pages/role/teacher/TeacherSettings.jsx";
 import ArchivedQuizzes from "./pages/role/teacher/ArchivedQuizzes.jsx";
 import ArchivedRooms from "./pages/role/teacher/ArchivedRooms.jsx";
 import StudentLayout from "./pages/role/student/StudentLayout.jsx";
-import StudentClasses from "./pages/role/student/StudentClasses.jsx";
 import StudentAchievements from "./pages/role/student/StudentAchievements.jsx";
 import StudentSettings from "./pages/role/student/StudentSettings.jsx";
 import RoomDetails from "./pages/RoomDetails.jsx";
@@ -48,7 +46,6 @@ const App = () => {
           }
         >
           <Route index element={<StudentDashboard />} />
-          <Route path="classes" element={<StudentClasses />} />
           <Route path="achievements" element={<StudentAchievements />} />
           <Route path="settings" element={<StudentSettings />} />
 
@@ -80,11 +77,10 @@ const App = () => {
           }
         >
           <Route index element={<TeacherDashboardContent />} />
-          <Route path="quizzes" element={<TeacherQuizzes />} />
-          <Route path="archived" element={<ArchivedQuizzes />} />
-          <Route path="archived-rooms" element={<ArchivedRooms />} />
           <Route path="students" element={<TeacherStudents />} />
           <Route path="settings" element={<TeacherSettings />} />
+          <Route path="settings/archived" element={<ArchivedQuizzes />} />
+          <Route path="settings/archived-rooms" element={<ArchivedRooms />} />
 
           {/* Room routes wrapped with RoomProvider */}
           <Route path="room/:roomId" element={<RoomWrapper />}>

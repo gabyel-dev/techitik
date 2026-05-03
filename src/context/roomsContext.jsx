@@ -1,45 +1,38 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { GetRooms } from "../api/rooms";
 
 const RoomsContext = createContext();
 
-export const useRooms = () => {
-  const context = useContext(RoomsContext);
-  if (!context) {
-    throw new Error("useRooms must be used within RoomsProvider");
-  }
-  return context;
-};
+export const useRooms = () => useContext(RoomsContext);
 
 export const RoomsProvider = ({ children }) => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const fetchRooms = async () => {
+  const fetchRooms = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await GetRooms();
-      setRooms(response.data || []);
-      setError(null);
+      const res = await GetRooms();
+      setRooms(res.data);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to load rooms");
-      console.error("Rooms fetch error:", err);
+      // Silent fail
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchRooms();
-  }, []);
-
-  const refreshRooms = async () => {
-    await fetchRooms();
-  };
+  }, [fetchRooms]);
 
   return (
-    <RoomsContext.Provider value={{ rooms, loading, error, refreshRooms }}>
+    <RoomsContext.Provider value={{ rooms, loading, refetchRooms: fetchRooms }}>
       {children}
     </RoomsContext.Provider>
   );

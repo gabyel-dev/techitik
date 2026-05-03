@@ -6,6 +6,7 @@ import {
 } from "../../../api/quiz";
 import Loader from "../../../components/loader";
 import toast from "react-hot-toast";
+import { formatDate } from "../../../utils/dateFormatter";
 import {
   PiArchiveDuotone,
   PiTrashDuotone,
@@ -74,14 +75,7 @@ export default function ArchivedQuizzes() {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+
 
   // Group quizzes by room
   const groupedQuizzes = quizzes.reduce((acc, quiz) => {

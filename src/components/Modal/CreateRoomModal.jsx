@@ -143,11 +143,33 @@ export const CreateRoomModal = ({ onClose, onSuccess }) => {
             onChange={onChange}
             className="px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-200 appearance-none bg-white text-sm cursor-pointer"
           >
-            <option value="">Choose a subject...</option>
-            <option value="math">📐 Mathematics</option>
-            <option value="science">🔬 Science</option>
-            <option value="history">📚 History</option>
-            <option value="literature">✍️ Literature</option>
+            <option value="" disabled>
+              Choose a subject...
+            </option>
+            <option value="Application Development">
+              Application Development
+            </option>
+            <option value="Computer Hardware Servicing">
+              Computer Hardware Servicing
+            </option>
+            <option value="Object Oriented Programming">
+              Object Oriented Programming
+            </option>
+            <option value="Office Productivity 1">Office Productivity 1</option>
+            <option value="Office Productivity 2">Office Productivity 2</option>
+            <option value="Office Productivity 3">Office Productivity 3</option>
+            <option value="Office Productivity 4">Office Productivity 4</option>
+            <option value="Operating System">Operating System</option>
+            <option value="Pathfit 1">Pathfit 1</option>
+            <option value="Pathfit 2">Pathfit 2</option>
+            <option value="Pathfit 3">Pathfit 3</option>
+            <option value="Pathfit 4">Pathfit 4</option>
+            <option value="Reading in Visual Arts">
+              Reading in Visual Arts
+            </option>
+            <option value="Statistics and Probability">
+              Statistics and Probability
+            </option>
           </select>
         </div>
 

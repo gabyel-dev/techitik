@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { getSession } from "../api/auth";
 
 const AuthContext = createContext(null);
@@ -10,27 +10,13 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const auth = async () => {
-      try {
-        const response = await getSession();
-        setUser(response.user);
-      } catch {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-    auth();
+    getSession()
+      .then(res => {
+        setUser(res.user);
+      })
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
-  const value = useMemo(
-    () => ({
-      user,
-      loading,
-      setUser,
-    }),
-    [user, loading],
-  );
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, loading, setUser }}>{children}</AuthContext.Provider>;
 };

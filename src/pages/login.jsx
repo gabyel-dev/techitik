@@ -1,5 +1,5 @@
 import { useState } from "react";
-import useSEO from "../hooks/useSEO";
+
 import { useGoogleLogin } from "@react-oauth/google";
 import { FcGoogle } from "react-icons/fc";
 import { googleLogin } from "../api/auth";
@@ -15,13 +15,6 @@ export default function Login() {
   const [error, setError] = useState("");
 
   const { setUser } = useAuth();
-
-  useSEO({
-    title: "TechItik - Interactive Learning Platform for Teachers & Students",
-    description:
-      "Create engaging quizzes, manage classrooms, and track student progress with TechItik. The modern learning management platform for educators and students.",
-    canonical: "https://techitik.com/",
-  });
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -63,7 +56,6 @@ export default function Login() {
         setIsLoading(false);
         setError(err?.message);
         setTimeout(() => setError(""), 6000);
-        console.error("Google login error", err);
       } finally {
         setIsLoading(false);
       }

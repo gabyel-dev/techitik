@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../../context/authContext";
+import { useRooms } from "../../../context/roomsContext";
 import { useNavigate } from "react-router-dom";
-import { GetRooms } from "../../../api/rooms";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import {
   PiBooksDuotone,
@@ -17,37 +17,24 @@ import Loader from "../../../components/loader";
 export default function TeacherDashboardContent() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { user } = useAuth();
+  const { rooms, loading, refetchRooms } = useRooms();
   const navigate = useNavigate();
-  const [rooms, setRooms] = useState([]);
   const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      const roomsResponse = await GetRooms();
-      const roomsData = roomsResponse.data || [];
-      setRooms(roomsData);
-
-      const totalQuizzes = roomsData.reduce((sum, room) => sum + (room.quiz_count || 0), 0);
-      const totalStudents = roomsData.reduce((sum, room) => sum + (room.member_count || 0), 0);
-      const activeQuizzes = roomsData.reduce((sum, room) => sum + (room.active_quiz_count || 0), 0);
+    if (rooms.length > 0) {
+      const totalQuizzes = rooms.reduce((sum, room) => sum + (room.quiz_count || 0), 0);
+      const totalStudents = rooms.reduce((sum, room) => sum + (room.member_count || 0), 0);
+      const activeQuizzes = rooms.reduce((sum, room) => sum + (room.active_quiz_count || 0), 0);
 
       setStats({
         totalQuizzes,
         totalStudents,
         activeQuizzes,
-        totalRooms: roomsData.length,
+        totalRooms: rooms.length,
       });
-    } catch (err) {
-      console.error("Failed to fetch dashboard data:", err);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [rooms]);
 
   const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 
@@ -133,7 +120,13 @@ export default function TeacherDashboardContent() {
             Here's what's happening with your classes today.
           </p>
           {isModalVisible && (
-            <CreateRoomModal onClose={() => setIsModalVisible(false)} />
+            <CreateRoomModal 
+              onClose={() => setIsModalVisible(false)} 
+              onSuccess={() => {
+                setIsModalVisible(false);
+                refetchRooms();
+              }}
+            />
           )}
         </div>
       </div>
@@ -141,7 +134,7 @@ export default function TeacherDashboardContent() {
       <main className="__main_container__ flex gap-8 w-full relative">
         <section className="__overview__ flex-[2]">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-            <div onClick={() => navigate(`/dashboard/t/${user.id}/quizzes`)} className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 shadow-sm group-hover:scale-105 transition-transform">

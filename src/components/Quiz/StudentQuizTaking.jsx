@@ -218,7 +218,6 @@ export default function StudentQuizTaking() {
 
   const saveAnswerToServer = async (questionId) => {
     if (!attempt?.id || quizClosed) {
-      console.error("Cannot save answer - quiz closed or no attempt");
       return;
     }
 
@@ -228,14 +227,11 @@ export default function StudentQuizTaking() {
           quiz_id: quizId,
           ...currentAnswers[questionId],
         };
-        console.log('Saving answer:', { questionId, answerData });
-        SaveAnswer(attempt.id, questionId, answerData).catch((err) => {
-          console.error("Failed to save answer:", err);
-        });
+        SaveAnswer(attempt.id, questionId, answerData).catch(() => {});
         return currentAnswers;
       });
     } catch (err) {
-      console.error("Failed to save answer:", err);
+      // Silent fail
     }
   };
 

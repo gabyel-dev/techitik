@@ -4,6 +4,7 @@ import { GetQuizRankings } from "../api/quiz";
 import { GetQuizDetails } from "../api/quiz";
 import { useAuth } from "../context/authContext";
 import Loader from "../components/loader";
+import { formatDateTimeShort } from "../utils/dateFormatter";
 import {
   PiTrophyDuotone,
   PiMedalDuotone,
@@ -54,15 +55,7 @@ export default function QuizRankings() {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "Not submitted";
-    return new Date(dateString).toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+
 
   const getRankColor = (rank) => {
     if (rank === 1) return 'from-amber-400 to-yellow-500';
@@ -288,7 +281,7 @@ export default function QuizRankings() {
                     {student.has_submitted && (isTeacher || isCurrentUser) && (
                       <div className="mt-2 pt-2 border-t border-slate-100">
                         <p className="text-xs text-slate-500">
-                          Submitted: {formatDate(student.submitted_at)}
+                          Submitted: {formatDateTimeShort(student.submitted_at)}
                         </p>
                       </div>
                     )}

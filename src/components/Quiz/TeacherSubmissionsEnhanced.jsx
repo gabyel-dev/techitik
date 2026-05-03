@@ -20,8 +20,8 @@ import {
   PiArrowLeft,
 } from "react-icons/pi";
 import { useAuth } from "../../context/authContext";
-import { usePolling } from "../../hooks/useOptimizedFetch";
 import { useRoom } from "../../context/roomContext";
+import { formatDateTimeShort } from "../../utils/dateFormatter";
 
 export default function TeacherSubmissions() {
   const { quizId } = useParams();
@@ -130,15 +130,7 @@ export default function TeacherSubmissions() {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+
 
   const getStatusBadge = (status) => {
     const badges = {
@@ -378,7 +370,7 @@ export default function TeacherSubmissions() {
                       </td>
                       <td className="px-6 py-4">
                         <span className="text-sm text-slate-600">
-                          {formatDate(submission.submitted_at)}
+                          {formatDateTimeShort(submission.submitted_at)}
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -660,7 +652,7 @@ export default function TeacherSubmissions() {
                             {violation.event_type}
                           </p>
                           <p className="text-xs text-slate-500">
-                            {formatDate(violation.timestamp)}
+                            {formatDateTimeShort(violation.timestamp)}
                           </p>
                         </div>
                       </div>
