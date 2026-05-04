@@ -23,19 +23,20 @@ export const GetStudentRoomLists = () => {
     }
   };
 
+  const fetchStudentRooms = async () => {
+    setLoading(true);
+    try {
+      const data = await GetStudentRooms();
+      setRooms(data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch student rooms:", error);
+      setRooms([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchStudentRooms = async () => {
-      setLoading(true);
-      try {
-        const data = await GetStudentRooms();
-        setRooms(data.data || []);
-      } catch (error) {
-        console.error("Failed to fetch student rooms:", error);
-        setRooms([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchStudentRooms();
   }, []);
 
@@ -55,6 +56,12 @@ export const GetStudentRoomLists = () => {
         <div className="text-center py-8 text-slate-500 text-sm">
           No classes yet. Join your first class!
         </div>
+        <button
+          onClick={fetchStudentRooms}
+          className="text-center w-full bg-[var(--primary)] text-white py-2 "
+        >
+          Retry
+        </button>
       </div>
     );
   }

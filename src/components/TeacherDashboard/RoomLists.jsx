@@ -4,7 +4,7 @@ import { useSidebar } from "../../context/sidebarContext";
 import { PiUsersDuotone, PiArrowRightDuotone } from "react-icons/pi";
 
 export const GetRoomLists = () => {
-  const { rooms, loading } = useRooms();
+  const { rooms, loading, refetchRooms } = useRooms();
   const { isOpen, setIsOpen, isDesktop } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
@@ -13,7 +13,7 @@ export const GetRoomLists = () => {
     navigate(`room/${roomId}`);
     // Close sidebar on mobile after clicking
     if (!isDesktop) {
-      setTimeout(() => setIsOpen(false), 2000); // Delay to allow navigation before closing
+      setTimeout(() => setIsOpen(false), 1000); // Delay to allow navigation before closing
     }
   };
 
@@ -21,7 +21,7 @@ export const GetRoomLists = () => {
     return (
       <div className="space-y-4 w-full px-4">
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin h-6 w-6 border-4 border-emerald-500 border-t-emerald-400 rounded-full"></div>
+          <div className="animate-spin h-6 w-6 border-2 border-emerald-500 border-t-emerald-200 rounded-full"></div>
         </div>
       </div>
     );
@@ -33,6 +33,12 @@ export const GetRoomLists = () => {
         <div className="text-center py-8 text-slate-500 text-sm">
           No rooms yet. Create your first room!
         </div>
+        <button
+          onClick={refetchRooms}
+          className="text-center w-full bg-[var(--primary)] text-white py-2 "
+        >
+          Retry
+        </button>
       </div>
     );
   }

@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { JoinRoomByInvite } from "../api/rooms";
 import { useAuth } from "../context/authContext";
-import Loader from "../components/loader";
 import { PiCheckCircleDuotone, PiWarningDuotone } from "react-icons/pi";
 
 export default function RoomInvite() {
@@ -11,7 +10,6 @@ export default function RoomInvite() {
   const { user, loading: authLoading } = useAuth();
   const [status, setStatus] = useState("processing"); // processing, success, error, already_member
   const [message, setMessage] = useState("");
-  const [roomId, setRoomId] = useState(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -34,8 +32,6 @@ export default function RoomInvite() {
       const response = await JoinRoomByInvite(roomCode);
 
       if (response.success) {
-        setRoomId(response.data.roomId);
-
         if (response.data.alreadyMember) {
           setStatus("already_member");
           setMessage("You're already a member of this room!");
@@ -64,9 +60,11 @@ export default function RoomInvite() {
 
   if (authLoading || status === "processing") {
     return (
-      <div className="flex h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
+      <div className="flex h-screen items-center justify-center bg-emerald-50">
         <div className="text-center">
-          <Loader />
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin h-6 w-6 border-2 border-emerald-500 border-t-emerald-200 rounded-full"></div>
+          </div>
           <p className="mt-4 text-slate-600">Processing invitation...</p>
         </div>
       </div>

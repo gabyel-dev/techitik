@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate, useParams, Outlet } from "react-router-dom";
 import { verifyStudentAccess } from "../../../api/auth";
 import { useAuth } from "../../../context/authContext";
@@ -10,7 +10,6 @@ export default function StudentLayout() {
   const navigate = useNavigate();
   const { user, loading: isLoading } = useAuth();
   const { id } = useParams();
-  const [verifying, setVerifying] = useState(true);
   const hasVerified = useRef(false);
 
   useEffect(() => {
@@ -20,14 +19,8 @@ export default function StudentLayout() {
       return;
     }
     hasVerified.current = true;
-    verifyStudentAccess(id)
-      .then(() => setVerifying(false))
-      .catch(() => navigate("/", { replace: true }));
+    verifyStudentAccess(id).catch(() => navigate("/", { replace: true }));
   }, [isLoading, user, id]);
-
-  if (isLoading || verifying) {
-    return <Loader />;
-  }
 
   return (
     <div className="relative flex h-screen w-full bg-emerald-50 text-slate-800 font-[var(--font-body)]">

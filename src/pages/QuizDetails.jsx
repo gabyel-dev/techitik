@@ -26,7 +26,7 @@ export default function QuizDetails() {
       try {
         const [quizRes, roomRes] = await Promise.all([
           GetQuizDetails(quizId),
-          GetRoomDetails(roomId)
+          GetRoomDetails(roomId),
         ]);
         setQuiz(quizRes.data);
         setRoom(roomRes.data);
@@ -39,11 +39,14 @@ export default function QuizDetails() {
     fetchData();
   }, [quizId, roomId]);
 
-
-
   const isTeacher = user?.role === "teacher";
 
-  if (loading || !quiz || !user) return <div className="flex h-screen items-center justify-center"><div className="animate-spin h-12 w-12 border-4 border-emerald-500 border-t-transparent rounded-full"></div></div>;
+  if (loading || !quiz || !user)
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin h-12 w-12 border-4 border-emerald-500 border-t-transparent rounded-full"></div>
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-slate-50">

@@ -4,7 +4,18 @@ import { verifyStudentAccess } from "../../../api/auth";
 import { JoinRoom, GetStudentRooms } from "../../../api/rooms";
 import { useAuth } from "../../../context/authContext";
 import Loader from "../../../components/loader";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  Legend,
+} from "recharts";
 import {
   PiBooksDuotone,
   PiPlusDuotone,
@@ -48,8 +59,14 @@ export default function StudentDashboard() {
       const roomsData = roomsResponse.data || [];
       setRooms(roomsData);
 
-      const totalQuizzes = roomsData.reduce((sum, room) => sum + (room.quiz_count || 0), 0);
-      const completedQuizzes = roomsData.reduce((sum, room) => sum + (room.completed_quiz_count || 0), 0);
+      const totalQuizzes = roomsData.reduce(
+        (sum, room) => sum + (room.quiz_count || 0),
+        0,
+      );
+      const completedQuizzes = roomsData.reduce(
+        (sum, room) => sum + (room.completed_quiz_count || 0),
+        0,
+      );
       const pendingQuizzes = totalQuizzes - completedQuizzes;
 
       setStats({
@@ -86,10 +103,11 @@ export default function StudentDashboard() {
     }
   }, [roomCode]);
 
-  const COLORS = ['#10b981', '#3b82f6', '#f59e0b'];
+  const COLORS = ["#10b981", "#3b82f6", "#f59e0b"];
 
-  const roomChartData = rooms.slice(0, 5).map(room => ({
-    name: room.name.length > 15 ? room.name.substring(0, 15) + '...' : room.name,
+  const roomChartData = rooms.slice(0, 5).map((room) => ({
+    name:
+      room.name.length > 15 ? room.name.substring(0, 15) + "..." : room.name,
     quizzes: room.quiz_count || 0,
     completed: room.completed_quiz_count || 0,
   }));
@@ -151,7 +169,10 @@ export default function StudentDashboard() {
             <main className="__main_container__ flex flex-col-reverse lg:flex-row gap-4 sm:gap-8 w-full relative">
               <section className="__overview__ flex-1">
                 <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 gap-3 mb-4 sm:mb-8">
-                  <div onClick={() => navigate(`/dashboard/s/${user.id}/classes`)} className="rounded-2xl border border-slate-200/60 bg-white p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
+                  <div
+                    onClick={() => navigate(`/dashboard/s/${user.id}/classes`)}
+                    className="rounded-2xl border border-slate-200/60 bg-white p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3 sm:gap-4">
                         <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 shadow-sm group-hover:scale-105 transition-transform">
@@ -222,13 +243,26 @@ export default function StudentDashboard() {
                     <div className="p-4 sm:p-6">
                       <ResponsiveContainer width="100%" height={300}>
                         <BarChart data={roomChartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#e2e8f0"
+                          />
                           <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                           <YAxis tick={{ fontSize: 12 }} />
                           <Tooltip />
                           <Legend />
-                          <Bar dataKey="completed" fill="#10b981" name="Completed" radius={[8, 8, 0, 0]} />
-                          <Bar dataKey="quizzes" fill="#3b82f6" name="Total Quizzes" radius={[8, 8, 0, 0]} />
+                          <Bar
+                            dataKey="completed"
+                            fill="#10b981"
+                            name="Completed"
+                            radius={[8, 8, 0, 0]}
+                          />
+                          <Bar
+                            dataKey="quizzes"
+                            fill="#3b82f6"
+                            name="Total Quizzes"
+                            radius={[8, 8, 0, 0]}
+                          />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>

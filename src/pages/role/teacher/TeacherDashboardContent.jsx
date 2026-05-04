@@ -2,7 +2,19 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../../../context/authContext";
 import { useRooms } from "../../../context/roomsContext";
 import { useNavigate } from "react-router-dom";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+} from "recharts";
 import {
   PiBooksDuotone,
   PiUsersDuotone,
@@ -12,20 +24,28 @@ import {
   PiChartBarDuotone,
 } from "react-icons/pi";
 import { CreateRoomModal } from "../../../components/Modal/CreateRoomModal";
-import Loader from "../../../components/loader";
 
 export default function TeacherDashboardContent() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { user } = useAuth();
-  const { rooms, loading, refetchRooms } = useRooms();
+  const { rooms, refetchRooms } = useRooms();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
     if (rooms.length > 0) {
-      const totalQuizzes = rooms.reduce((sum, room) => sum + (room.quiz_count || 0), 0);
-      const totalStudents = rooms.reduce((sum, room) => sum + (room.member_count || 0), 0);
-      const activeQuizzes = rooms.reduce((sum, room) => sum + (room.active_quiz_count || 0), 0);
+      const totalQuizzes = rooms.reduce(
+        (sum, room) => sum + (room.quiz_count || 0),
+        0,
+      );
+      const totalStudents = rooms.reduce(
+        (sum, room) => sum + (room.member_count || 0),
+        0,
+      );
+      const activeQuizzes = rooms.reduce(
+        (sum, room) => sum + (room.active_quiz_count || 0),
+        0,
+      );
 
       setStats({
         totalQuizzes,
@@ -36,26 +56,22 @@ export default function TeacherDashboardContent() {
     }
   }, [rooms]);
 
-  const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
+  const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 
-  const roomChartData = rooms.slice(0, 5).map(room => ({
-    name: room.name.length > 15 ? room.name.substring(0, 15) + '...' : room.name,
+  const roomChartData = rooms.slice(0, 5).map((room) => ({
+    name:
+      room.name.length > 15 ? room.name.substring(0, 15) + "..." : room.name,
     students: room.member_count || 0,
     quizzes: room.quiz_count || 0,
   }));
 
   const quizStatusData = [
-    { name: 'Active', value: stats?.activeQuizzes || 0 },
-    { name: 'Inactive', value: (stats?.totalQuizzes || 0) - (stats?.activeQuizzes || 0) },
+    { name: "Active", value: stats?.activeQuizzes || 0 },
+    {
+      name: "Inactive",
+      value: (stats?.totalQuizzes || 0) - (stats?.activeQuizzes || 0),
+    },
   ];
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader />
-      </div>
-    );
-  }
 
   return (
     <div className="p-4 md:p-8 animate-fadeIn ">
@@ -93,7 +109,8 @@ export default function TeacherDashboardContent() {
               </span>{" "}
             </h2>
             <p className="mt-1 text-xs md:text-sm text-emerald-100">
-              You have {stats?.activeQuizzes || 0} active quizzes and {stats?.totalRooms || 0} rooms to manage today.
+              You have {stats?.activeQuizzes || 0} active quizzes and{" "}
+              {stats?.totalRooms || 0} rooms to manage today.
             </p>
           </div>
         </div>
@@ -120,8 +137,8 @@ export default function TeacherDashboardContent() {
             Here's what's happening with your classes today.
           </p>
           {isModalVisible && (
-            <CreateRoomModal 
-              onClose={() => setIsModalVisible(false)} 
+            <CreateRoomModal
+              onClose={() => setIsModalVisible(false)}
               onSuccess={() => {
                 setIsModalVisible(false);
                 refetchRooms();
@@ -144,13 +161,18 @@ export default function TeacherDashboardContent() {
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Total Quizzes
                     </p>
-                    <p className="text-3xl font-bold text-slate-900 mt-1">{stats?.totalQuizzes || 0}</p>
+                    <p className="text-3xl font-bold text-slate-900 mt-1">
+                      {stats?.totalQuizzes || 0}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div onClick={() => navigate(`/dashboard/t/${user.id}/students`)} className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
+            <div
+              onClick={() => navigate(`/dashboard/t/${user.id}/students`)}
+              className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer"
+            >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600 shadow-sm group-hover:scale-105 transition-transform">
@@ -178,7 +200,9 @@ export default function TeacherDashboardContent() {
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Active Quizzes
                     </p>
-                    <p className="text-3xl font-bold text-slate-900 mt-1">{stats?.activeQuizzes || 0}</p>
+                    <p className="text-3xl font-bold text-slate-900 mt-1">
+                      {stats?.activeQuizzes || 0}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -194,7 +218,9 @@ export default function TeacherDashboardContent() {
                     <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Total Rooms
                     </p>
-                    <p className="text-3xl font-bold text-slate-900 mt-1">{stats?.totalRooms || 0}</p>
+                    <p className="text-3xl font-bold text-slate-900 mt-1">
+                      {stats?.totalRooms || 0}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -219,8 +245,18 @@ export default function TeacherDashboardContent() {
                       <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                       <YAxis tick={{ fontSize: 12 }} />
                       <Tooltip />
-                      <Bar dataKey="students" fill="#10b981" name="Students" radius={[8, 8, 0, 0]} />
-                      <Bar dataKey="quizzes" fill="#3b82f6" name="Quizzes" radius={[8, 8, 0, 0]} />
+                      <Bar
+                        dataKey="students"
+                        fill="#10b981"
+                        name="Students"
+                        radius={[8, 8, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="quizzes"
+                        fill="#3b82f6"
+                        name="Quizzes"
+                        radius={[8, 8, 0, 0]}
+                      />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
@@ -249,13 +285,18 @@ export default function TeacherDashboardContent() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) =>
+                          `${name}: ${(percent * 100).toFixed(0)}%`
+                        }
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
                       >
                         {quizStatusData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
                         ))}
                       </Pie>
                       <Tooltip />
