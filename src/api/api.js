@@ -5,7 +5,7 @@ const baseURL = import.meta.env.VITE_API_URL;
 export const api = axios.create({
   baseURL: /* "/" */ baseURL,
   withCredentials: true,
-  timeout: 15000,
+  timeout: 30000,
 });
 
 let refreshPromise = null;

@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { verifyStudentAccess } from "../../../api/auth";
 import { JoinRoom, GetStudentRooms } from "../../../api/rooms";
 import { useAuth } from "../../../context/authContext";
-import Loader from "../../../components/loader";
 import {
   BarChart,
   Bar,
@@ -30,7 +29,6 @@ export default function StudentDashboard() {
   const navigate = useNavigate();
   const { user, loading: isLoading } = useAuth();
   const { id } = useParams();
-  const [verifying, setVerifying] = useState(true);
   const [roomCode, setRoomCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,7 +45,6 @@ export default function StudentDashboard() {
     hasVerified.current = true;
     verifyStudentAccess(id)
       .then(() => {
-        setVerifying(false);
         fetchDashboardData();
       })
       .catch(() => navigate("/", { replace: true }));
@@ -111,10 +108,6 @@ export default function StudentDashboard() {
     quizzes: room.quiz_count || 0,
     completed: room.completed_quiz_count || 0,
   }));
-
-  if (isLoading || verifying) {
-    return <Loader />;
-  }
 
   return (
     <>

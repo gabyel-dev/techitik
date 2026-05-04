@@ -4,7 +4,7 @@ import {
   UnarchiveQuiz,
   DeleteQuiz,
 } from "../../../api/quiz";
-import Loader from "../../../components/loader";
+import { Loader } from "../../../components/loader";
 import toast from "react-hot-toast";
 import { formatDate } from "../../../utils/dateFormatter";
 import {
@@ -74,8 +74,6 @@ export default function ArchivedQuizzes() {
       setProcessing(false);
     }
   };
-
-
 
   // Group quizzes by room
   const groupedQuizzes = quizzes.reduce((acc, quiz) => {

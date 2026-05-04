@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { GetAttempt } from "../../api/attempt";
 import { GetQuizDetails } from "../../api/quiz";
-import Loader from "../loader";
+import { Loader } from "../loader";
 import {
   PiCheckCircleDuotone,
   PiXCircleDuotone,
@@ -65,9 +65,10 @@ export default function StudentScoreView() {
 
   const scoreReleased = attempt.score_released;
   const hasPenalty = (attempt.violation_count || 0) > 3;
-  const percentage = attempt.max_score > 0 
-    ? Math.round((attempt.final_score / attempt.max_score) * 100) 
-    : 0;
+  const percentage =
+    attempt.max_score > 0
+      ? Math.round((attempt.final_score / attempt.max_score) * 100)
+      : 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
@@ -102,9 +103,7 @@ export default function StudentScoreView() {
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">
                   Quiz Completed!
                 </h2>
-                <p className="text-slate-600">
-                  Your score has been released
-                </p>
+                <p className="text-slate-600">Your score has been released</p>
               </div>
 
               {/* Score Breakdown */}
@@ -129,7 +128,9 @@ export default function StudentScoreView() {
                 )}
 
                 <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-lg border-2 border-emerald-500">
-                  <span className="text-emerald-700 font-semibold">Final Score</span>
+                  <span className="text-emerald-700 font-semibold">
+                    Final Score
+                  </span>
                   <span className="text-2xl font-bold text-emerald-700">
                     {attempt.final_score || 0} / {attempt.max_score || 0}
                   </span>
@@ -140,7 +141,10 @@ export default function StudentScoreView() {
               {attempt.violation_count > 0 && (
                 <div className="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
                   <div className="flex items-start gap-3">
-                    <PiWarningDuotone size={20} className="text-amber-600 mt-0.5" />
+                    <PiWarningDuotone
+                      size={20}
+                      className="text-amber-600 mt-0.5"
+                    />
                     <div className="flex-1">
                       <p className="font-medium text-amber-900">
                         Focus Violations: {attempt.violation_count}
@@ -148,8 +152,7 @@ export default function StudentScoreView() {
                       <p className="text-sm text-amber-700 mt-1">
                         {attempt.violation_count <= 3
                           ? "You received warnings for leaving the quiz tab."
-                          : `${attempt.violation_count - 3} violation${attempt.violation_count - 3 > 1 ? 's' : ''} resulted in point deductions.`
-                        }
+                          : `${attempt.violation_count - 3} violation${attempt.violation_count - 3 > 1 ? "s" : ""} resulted in point deductions.`}
                       </p>
                     </div>
                   </div>
@@ -174,8 +177,8 @@ export default function StudentScoreView() {
               </p>
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="text-sm text-blue-700">
-                  You'll be able to see your score once your teacher releases it.
-                  This page will update automatically.
+                  You'll be able to see your score once your teacher releases
+                  it. This page will update automatically.
                 </p>
               </div>
             </div>

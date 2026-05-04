@@ -9,7 +9,6 @@ import {
 
 export default function TeacherSettings() {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const settingsCards = [
     {
@@ -18,23 +17,15 @@ export default function TeacherSettings() {
       icon: PiArchiveDuotone,
       iconColor: "text-amber-600",
       bgColor: "bg-amber-50",
-      path: "settings/archived",
+      path: "archived",
     },
     {
-      title: "Archived Rooms",
-      description: "View and restore archived rooms",
+      title: "Archived & Recycle Bin",
+      description: "View archived rooms and recycle bin",
       icon: PiFolderOpenDuotone,
       iconColor: "text-blue-600",
       bgColor: "bg-blue-50",
-      path: "settings/archived-rooms",
-    },
-    {
-      title: "Recycle Bin",
-      description: "Recover or permanently delete items",
-      icon: PiTrashDuotone,
-      iconColor: "text-red-600",
-      bgColor: "bg-red-50",
-      path: "settings/recycle-bin",
+      path: "archived-rooms",
     },
   ];
 
@@ -57,7 +48,9 @@ export default function TeacherSettings() {
             className="group rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-all duration-200 text-left"
           >
             <div className="flex items-start justify-between mb-4">
-              <div className={`w-12 h-12 rounded-xl ${card.bgColor} flex items-center justify-center`}>
+              <div
+                className={`w-12 h-12 rounded-xl ${card.bgColor} flex items-center justify-center`}
+              >
                 <card.icon size={24} className={card.iconColor} />
               </div>
               <PiArrowRightDuotone

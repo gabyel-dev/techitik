@@ -4,7 +4,7 @@ import { GetQuizDetails, UpdateQuiz, ReorderQuestions } from "../../api/quiz";
 import QuizHeader from "./QuizHeader";
 import QuestionCard from "./QuestionCard";
 import AddQuestionButton from "./AddQuestionButton";
-import Loader from "../loader";
+import { Loader } from "../loader";
 import toast from "react-hot-toast";
 import {
   PiArrowLeftDuotone,
@@ -54,7 +54,7 @@ export default function QuizBuilder() {
     setQuiz((prev) => ({
       ...prev,
       questions: prev.questions.map((q) =>
-        q.id === questionId ? { ...q, ...updates } : q
+        q.id === questionId ? { ...q, ...updates } : q,
       ),
     }));
   };

@@ -48,6 +48,12 @@ export const RoomProvider = ({ children, roomId }) => {
     return () => clearInterval(interval);
   }, [roomId]);
 
+  useEffect(() => {
+    if (room) {
+      sessionStorage.setItem(`room_${roomId}`, JSON.stringify(room));
+    }
+  }, [room, roomId]);
+
   return (
     <RoomContext.Provider
       value={{

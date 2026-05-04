@@ -1,5 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useRooms } from "../../context/roomsContext";
+import { LoaderSpinner } from "../loader";
 import { useSidebar } from "../../context/sidebarContext";
 import { PiUsersDuotone, PiArrowRightDuotone } from "react-icons/pi";
 
@@ -18,13 +19,7 @@ export const GetRoomLists = () => {
   };
 
   if (loading) {
-    return (
-      <div className="space-y-4 w-full px-4">
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin h-6 w-6 border-2 border-emerald-500 border-t-emerald-200 rounded-full"></div>
-        </div>
-      </div>
-    );
+    return <LoaderSpinner />;
   }
 
   if (!rooms || rooms.length === 0) {
@@ -45,17 +40,17 @@ export const GetRoomLists = () => {
 
   return (
     <div className="space-y-4 w-full pb-3">
-      <div className="space-y-3 overflow-hidden">
+      <div className="space-y-3 ">
         {rooms.map((room) => {
           const isActive = location.pathname.includes(`/room/${room?.id}`);
           return (
             <div
               key={room?.id}
               onClick={() => handleRoomClick(room?.id)}
-              className={`group relative rounded-xl bg-[var(--secondary)] p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
+              className={`group relative rounded-3xl   p-5 shadow-xl hover:shadow-md  cursor-pointer outline-0 ${
                 isActive
-                  ? "border-2 border-emerald-500 shadow-2xl shadow-emerald-500"
-                  : "hover:border-emerald-200"
+                  ? "border-2 border-emerald-200 shadow-md shadow-emerald-200/30 bg-emerald-50"
+                  : "hover:border-emerald-200 bg-white"
               }`}
             >
               <div className="flex items-start justify-between mb-4">
@@ -63,32 +58,21 @@ export const GetRoomLists = () => {
                   <div
                     className={`flex-1 min-w-0 ${isOpen ? "" : "flex items-center justify-center w-full"}`}
                   >
-                    <h3 className="font-semibold truncate text-[var(--nav)] group-hover:text-emerald-200 transition-colors">
+                    <h3 className="font-semibold truncate text-[var(--secondary)] group-hover:text-black/60 transition-colors">
                       {isOpen ? room?.name : room?.name?.charAt(0)}
                     </h3>
-                    {isOpen && (
-                      <p className="text-xs text-slate-500 truncate">
-                        {room?.subject}
-                      </p>
-                    )}
                   </div>
                 </div>
-                {isOpen && (
-                  <PiArrowRightDuotone
-                    className="text-slate-300 group-hover:text-emerald-500 transition-colors flex-shrink-0"
-                    size={20}
-                  />
-                )}
               </div>
 
               {isOpen && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-full bg-[var(--primary)] text-xs font-medium text-slate-50">
+                    <span className="px-2.5 pt-1 pb-0.5 rounded-full bg-[var(--secondary)] text-xs font-medium text-slate-50">
                       {room?.section}
                     </span>
                   </div>
-                  <div className="flex items-center gap-4 text-xl font-bold text-white">
+                  <div className="flex items-center gap-4 text-xl font-bold text-slat-500">
                     <div className="flex items-center gap-1">
                       <PiUsersDuotone size={14} />
                       <span>{room?.member_count || 0}</span>

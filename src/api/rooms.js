@@ -64,3 +64,8 @@ export const PermanentDeleteRoom = async (roomId) => {
   const response = await api.delete(`/room/${roomId}/permanent`);
   return response.data;
 };
+
+export const BulkDeleteRooms = async () => {
+  const response = await api.delete(`/room/bulk-delete`);
+  return response.data;
+};

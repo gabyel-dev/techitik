@@ -12,6 +12,7 @@ import {
   PiTrophyDuotone,
   PiClipboardDuotone,
 } from "react-icons/pi";
+import { LoaderSpinner } from "../components/loader";
 
 export default function QuizDetails() {
   const { roomId, quizId } = useParams();
@@ -41,15 +42,10 @@ export default function QuizDetails() {
 
   const isTeacher = user?.role === "teacher";
 
-  if (loading || !quiz || !user)
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin h-12 w-12 border-4 border-emerald-500 border-t-transparent rounded-full"></div>
-      </div>
-    );
+  if (loading || !quiz || !user) return <LoaderSpinner />;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Breadcrumb */}
         <div className="flex mb-4">

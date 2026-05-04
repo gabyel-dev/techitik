@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   GetSubmissions,
@@ -8,7 +8,6 @@ import {
   GetStudentResponses,
   OverrideScore,
 } from "../../api/attempt";
-import Loader from "../loader";
 import toast from "react-hot-toast";
 import {
   PiWarningDuotone,
@@ -32,7 +31,6 @@ export default function TeacherSubmissions() {
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [violations, setViolations] = useState([]);
   const [studentResponses, setStudentResponses] = useState([]);
-  const [loadings, setLoading] = useState(true);
   const [showViolations, setShowViolations] = useState(false);
   const [showResponses, setShowResponses] = useState(false);
   const [editingScore, setEditingScore] = useState(null);
@@ -50,8 +48,6 @@ export default function TeacherSubmissions() {
       setSubmissions(response.data || []);
     } catch (err) {
       console.error("Failed to fetch submissions:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -129,8 +125,6 @@ export default function TeacherSubmissions() {
       toast.error("Failed to release scores");
     }
   };
-
-
 
   const getStatusBadge = (status) => {
     const badges = {

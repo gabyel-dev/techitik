@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { JoinRoomByInvite } from "../api/rooms";
 import { useAuth } from "../context/authContext";
 import { PiCheckCircleDuotone, PiWarningDuotone } from "react-icons/pi";
+import { LoaderSpinner } from "../components/loader";
 
 export default function RoomInvite() {
   const { roomCode } = useParams();
@@ -62,9 +63,7 @@ export default function RoomInvite() {
     return (
       <div className="flex h-screen items-center justify-center bg-emerald-50">
         <div className="text-center">
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin h-6 w-6 border-2 border-emerald-500 border-t-emerald-200 rounded-full"></div>
-          </div>
+          <LoaderSpinner />
           <p className="mt-4 text-slate-600">Processing invitation...</p>
         </div>
       </div>

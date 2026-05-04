@@ -46,7 +46,7 @@ export default function SharedSidebar({
       <aside
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`__side_bar__ flex flex-col bg-white  border-slate-200/60 transition-all duration-300 ease-in-out z-[46] fixed lg:sticky inset-y-0 left-0 shadow-xl lg:shadow-none ${
+        className={`__side_bar__ flex flex-col bg-white  border-r-slate-300 border-1 transition-all duration-300 ease-in-out z-[46] fixed lg:sticky inset-y-0 left-0 shadow-xl lg:shadow-none ${
           isOpen
             ? "translate-x-0 w-[280px] lg:w-72"
             : "-translate-x-full lg:translate-x-0 lg:w-20"

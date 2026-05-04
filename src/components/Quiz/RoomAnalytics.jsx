@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { GetRoomAnalytics } from "../../api/attempt";
 import ReactECharts from "echarts-for-react";
-import Loader from "../loader";
+import { Loader } from "../loader";
 import toast from "react-hot-toast";
-import { PiArrowLeftDuotone } from "react-icons/pi";
+import { PiArrowLeft, PiArrowLeftDuotone } from "react-icons/pi";
 
 export default function RoomAnalytics() {
   const { roomId } = useParams();
@@ -121,7 +121,7 @@ export default function RoomAnalytics() {
           ? submissions.reduce((sum, s) => sum + (s.final_score || 0), 0) /
             submissions.length
           : 0;
-      const maxScore = submissions[0]?.max_score || 100;
+      const maxScore = submissions[0]?.max_score;
       const avgPercentage = maxScore > 0 ? (avgScore / maxScore) * 100 : 0;
 
       return {
@@ -201,75 +201,6 @@ export default function RoomAnalytics() {
     };
   };
 
-  const getRadarOption = () => {
-    if (!analytics || analytics.length === 0) return {};
-
-    const quizData = analytics.slice(0, 6).map((quiz) => {
-      const submissions =
-        quiz.quiz_submissions?.filter((s) => s.status === "submitted") || [];
-      const avgScore =
-        submissions.length > 0
-          ? submissions.reduce((sum, s) => sum + (s.final_score || 0), 0) /
-            submissions.length
-          : 0;
-      const maxScore = submissions[0]?.max_score || 100;
-      const avgPercentage = maxScore > 0 ? (avgScore / maxScore) * 100 : 0;
-
-      return {
-        name:
-          quiz.title.length > 15
-            ? quiz.title.substring(0, 15) + "..."
-            : quiz.title,
-        value: avgPercentage.toFixed(1),
-      };
-    });
-
-    return {
-      title: {
-        text: "Quiz Performance Radar",
-        left: "center",
-        textStyle: { fontSize: 18, fontWeight: "bold" },
-      },
-      tooltip: {
-        trigger: "item",
-      },
-      radar: {
-        indicator: quizData.map((q) => ({ name: q.name, max: 100 })),
-        shape: "polygon",
-        splitNumber: 5,
-        axisName: {
-          color: "#475569",
-          fontSize: 11,
-        },
-        splitLine: {
-          lineStyle: { color: "#e2e8f0" },
-        },
-        splitArea: {
-          show: true,
-          areaStyle: {
-            color: ["rgba(16, 185, 129, 0.05)", "rgba(16, 185, 129, 0.1)"],
-          },
-        },
-      },
-      series: [
-        {
-          type: "radar",
-          data: [
-            {
-              value: quizData.map((q) => q.value),
-              name: "Average Score",
-              itemStyle: { color: "#10b981" },
-              areaStyle: {
-                color: "rgba(16, 185, 129, 0.3)",
-              },
-              lineStyle: { width: 2 },
-            },
-          ],
-        },
-      ],
-    };
-  };
-
   const getRoomStats = () => {
     if (!analytics || analytics.length === 0) {
       return {
@@ -286,12 +217,13 @@ export default function RoomAnalytics() {
     let scoreCount = 0;
 
     analytics.forEach((quiz) => {
-      const submissions =
-        quiz.quiz_submissions?.filter((s) => s.status === "submitted") || [];
+      const submissions = quiz.quiz_submissions?.filter(
+        (s) => s.status === "submitted",
+      );
       totalSubmissions += submissions.length;
 
       submissions.forEach((s) => {
-        const maxScore = s.max_score || 100;
+        const maxScore = s.max_score;
         const percentage = maxScore > 0 ? (s.final_score / maxScore) * 100 : 0;
         totalScore += percentage;
         scoreCount++;
@@ -325,8 +257,7 @@ export default function RoomAnalytics() {
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4"
           >
-            <PiArrowLeftDuotone size={20} />
-            Back to Room
+            <PiArrowLeft size={20} />
           </button>
           <h1 className="text-3xl font-bold text-slate-900">Room Analytics</h1>
           <p className="text-slate-500 mt-1">
@@ -378,14 +309,6 @@ export default function RoomAnalytics() {
               opts={{ renderer: "svg" }}
             />
           </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-          <ReactECharts
-            option={getRadarOption()}
-            style={{ height: "500px" }}
-            opts={{ renderer: "svg" }}
-          />
         </div>
 
         {/* Quiz Details Table */}

@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useNavigate, useParams, Outlet } from "react-router-dom";
 import { verifyStudentAccess } from "../../../api/auth";
 import { useAuth } from "../../../context/authContext";
-import Loader from "../../../components/loader";
+
 import StudentSidebar from "../../../components/StudentSidebar";
 import StudentHeader from "../../../components/StudentDashboard/StudentHeader";
 
@@ -23,7 +23,7 @@ export default function StudentLayout() {
   }, [isLoading, user, id]);
 
   return (
-    <div className="relative flex h-screen w-full bg-emerald-50 text-slate-800 font-[var(--font-body)]">
+    <div className="relative flex h-screen w-full bg-white text-slate-800 font-[var(--font-body)]">
       <StudentSidebar />
       <main className="flex w-full flex-col">
         <StudentHeader />

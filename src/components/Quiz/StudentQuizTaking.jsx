@@ -9,7 +9,7 @@ import {
   LogViolation,
 } from "../../api/attempt";
 import { useAuth } from "../../context/authContext";
-import Loader from "../loader";
+import { Loader } from "../loader";
 import toast from "react-hot-toast";
 import { PiWarningDuotone, PiEyeDuotone, PiXBold } from "react-icons/pi";
 

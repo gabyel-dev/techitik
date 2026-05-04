@@ -8,7 +8,7 @@ import { useAuth } from "../../context/authContext";
 import { useSidebar } from "../../context/sidebarContext";
 import { AlignCenter, Menu } from "@duo-icons/react";
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { logout } from "../../api/auth";
 import { DropdownModal } from "../Modal/DropdownModal";
 
@@ -18,6 +18,15 @@ export default function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
+  const { roomId } = useParams();
+  const [roomCode, setRoomCode] = useState(null);
+
+  useEffect(() => {
+    const storedRoom = sessionStorage.getItem(`room_${roomId}`);
+
+    const room = JSON.parse(storedRoom);
+    setRoomCode(room?.room_code);
+  }, [roomId]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -41,32 +50,25 @@ export default function Header() {
   };
 
   return (
-    <header className="flex sticky top-0 h-14 sm:h-16 items-center justify-between border-b border-slate-200/60 bg-[var(--primary)] backdrop-blur-xl px-3 sm:px-8 shadow-sm z-1">
+    <header className="flex sticky z-4 top-0 h-14 sm:h-16 items-center justify-between border-b border-slate-200/60 bg-slate-100 backdrop-blur-xl px-3 sm:px-8 shadow-sm ">
       <div className="flex items-center justify-center gap-2 sm:gap-3">
         <button
           onClick={toggleSidebar}
           className="cursor-pointer hover:opacity-80 transition-opacity"
         >
-          <Menu size={20} className="w-8 h-8 " color="white" />
+          <Menu size={20} className="w-8 h-8 " color="var(--primary)" />
         </button>
         <img src="/logo.png" alt="PTC Logo" className="w-7 sm:w-9" />
       </div>
 
-      <div className="hidden md:flex items-center w-full max-w-md gap-3 rounded-xl border border-slate-200/60 bg-slate-50/50 px-4 py-2.5 focus-within:border-emerald-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all duration-300">
-        <PiMagnifyingGlassDuotone className="text-slate-400" size={18} />
-        <input
-          type="text"
-          placeholder="Search quizzes, students or reports..."
-          className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
-        />
-        <div className="flex items-center gap-1.5 rounded-md bg-slate-200/50 px-2 py-0.5 text-[10px] font-medium text-slate-500">
-          <span>⌘</span>
-          <span>K</span>
-        </div>
+      <div className="flex items-center w-fit max-w-fit  px-4 py-2.5  transition-all duration-300">
+        <span className="text-sm font-semibold text-[var(--primary)] font-[var(--font-heading)] uppercase">
+          {roomCode}
+        </span>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-6">
-        <button className="relative text-slate-50 hover:text-slate-900 transition-colors duration-200 p-1.5 sm:p-2 rounded-full hover:bg-[var(--bg)]">
+        <button className="relative text-slate-500 hover:text-slate-900 transition-colors duration-200 p-1.5 sm:p-2 rounded-full hover:bg-[var(--bg)]">
           <PiBellDuotone size={18} className="sm:w-[22px] sm:h-[22px]" />
           <span className="absolute right-1 top-1 sm:right-1.5 sm:top-1.5 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full border-2 border-white bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/20"></span>
         </button>

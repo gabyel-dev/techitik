@@ -202,13 +202,17 @@ export default function RoomDetails() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <div className="__room_details_header__ sticky font-semibold text-slate-600 top-0 z-3 w-full bg-white max-h-20 flex items-center justify-center md:justify-start md:px-4 border-b-2 border-b-gray-200 shadow-lg/4">
+        <span className="px-5 py-3 hover:bg-gray-200 text-sm">Stream</span>
+        <span className="px-5 py-3 hover:bg-gray-200 text-sm ">People</span>
+      </div>
       <div className="bg-black flex relative w-full h-fit  overflow-hidden">
         <img
           src="/bg/bg.png"
           alt="Room Background"
           className="object-cover opacity-60 w-full max-h-80   relative "
         />
-        <div className="  absolute  right-4 bottom-4 ">
+        <div className="  absolute hidden md:block  right-4 bottom-4 ">
           <div className="bg-white w-fit px-4 py-3  border border-slate-200 flex-shrink-0">
             <p className="text-xs text-slate-500 font-medium uppercase tracking-wide mb-0.5">
               Room Code
@@ -227,7 +231,7 @@ export default function RoomDetails() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
         {/* Header Section */}
         <div className="flex">
           <Link
@@ -251,7 +255,7 @@ export default function RoomDetails() {
             <div className="flex justify-between w-full items-center pb-3">
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-slate-900 leading-tight">
-                  {room?.name}
+                  {room?.name || "-"}
                 </h1>
 
                 <div className="flex items-center gap-2.5">
@@ -259,7 +263,7 @@ export default function RoomDetails() {
                     <p className="text-sm font-semibold text-slate-500 truncate">
                       By{" "}
                       {room?.members?.find((m) => m.role === "teacher")?.user
-                        ?.full_name || "N/A"}
+                        ?.full_name || "-"}
                     </p>
                   </div>
                 </div>
@@ -269,7 +273,7 @@ export default function RoomDetails() {
                   onClick={() => setShowRoomSettings(!showRoomSettings)}
                   className="flex items-center justify-center gap-2   text-gray-500 text-sm font-medium  transition-all min-h-[44px]"
                 >
-                  <PiGearDuotone size={20} />
+                  <PiDotsThreeVerticalBold size={25} />
                 </button>
 
                 <div className={`absolute -translate-y-2 translate-x-4`}>
@@ -311,34 +315,63 @@ export default function RoomDetails() {
             </div>
 
             {/* Metadata Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-5 md:pt-8">
+            <div className="flex items-center justify-between w-full pt-5 md:pt-8">
               <div className="flex items-center gap-2.5">
                 <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
                   <PiClipboardTextDuotone
                     size={18}
-                    className="text-emerald-600"
+                    className="text-emeral  d-600"
                   />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-slate-500 font-medium">Section</p>
                   <p className="text-sm font-semibold text-slate-900 truncate">
-                    {room?.section}
+                    {room?.section || "-"}
                   </p>
                 </div>
               </div>
 
               {user.role === "teacher" && (
-                <div className="flex items-center gap-2.5">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                <div className="flex items-center ml-4 gap-2.5 w-full">
+                  <div className="flex-shrink-0  w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
                     <PiCalendarDuotone size={18} className="text-amber-600" />
                   </div>
-                  <div className="min-w-0">
+                  <div className="w-full">
                     <p className="text-xs text-slate-500 font-medium">
                       Created
                     </p>
-                    <p className="text-sm font-semibold text-slate-900 truncate">
-                      {formatDate(room?.created_at)}
+                    <p className="text-sm font-semibold text-slate-900 ">
+                      {formatDate(room?.created_at) || "-"}
                     </p>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex  flex-row-reverse mt-4 md:flex md:flex-row items-center gap-2 md:justify-end w-full">
+                    <div className="hidden md:block">
+                      {isTeacher && (
+                        <>
+                          <button
+                            onClick={() =>
+                              navigate(
+                                `/dashboard/t/${user.id}/room/${roomId}/analytics`,
+                              )
+                            }
+                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-500 text-white text-sm font-medium hover:bg-purple-600 active:scale-95 transition-all min-h-[44px]"
+                          >
+                            <PiChartBarDuotone size={20} />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                    <div className="hidden md:block">
+                      <button
+                        onClick={handleShareInvite}
+                        className=" flex items-center justify-center w-full sm:w-auto px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-medium  hover:bg-emerald-600 active:scale-95 transition-all min-h-[44px]"
+                      >
+                        <PiShareNetworkDuotone size={20} className="sm:mr-2" />
+                        <span className="sm:inline">Share Invite</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -346,11 +379,11 @@ export default function RoomDetails() {
           </div>
 
           {/* Actions Bar */}
-          <div className=" bg-slate-50/50 w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-            {/* Room Code */}
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-2 justify-end w-full">
+          {/* Room Code */}
+          {/* Action Buttons */}
+          <div className="flex flex-row-reverse mt-4  items-center gap-2  w-full">
+            <div className="block md:hidden ">
               {isTeacher && (
                 <>
                   <button
@@ -359,16 +392,17 @@ export default function RoomDetails() {
                         `/dashboard/t/${user.id}/room/${roomId}/analytics`,
                       )
                     }
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-500 text-white text-sm font-medium rounded-lg hover:bg-purple-600 active:scale-95 transition-all min-h-[44px]"
+                    className="flex-1  flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-500 text-white text-sm font-medium hover:bg-purple-600 active:scale-95 transition-all min-h-[44px]"
                   >
                     <PiChartBarDuotone size={20} />
-                    <span>Analytics</span>
                   </button>
                 </>
               )}
+            </div>
+            <div className="block md:hidden w-full">
               <button
                 onClick={handleShareInvite}
-                className=" flex items-center justify-center w-full sm:w-auto px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-emerald-600 active:scale-95 transition-all min-h-[44px]"
+                className=" flex items-center justify-center w-full  px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-medium  hover:bg-emerald-600 active:scale-95 transition-all min-h-[44px]"
               >
                 <PiShareNetworkDuotone size={20} className="sm:mr-2" />
                 <span className="sm:inline">Share Invite</span>
@@ -535,7 +569,7 @@ export default function RoomDetails() {
                                     className={`px-2.5 py-1 rounded-full text-xs font-semibold text-center whitespace-nowrap ${
                                       quiz.is_open
                                         ? "bg-blue-100 text-blue-700"
-                                        : "bg-amber-100 text-amber-700"
+                                        : "bg-slate-100 text-slate-700"
                                     }`}
                                   >
                                     {quiz.is_open ? "Open" : "Closed"}
@@ -652,7 +686,7 @@ export default function RoomDetails() {
                     </p>
                   </div>
                 ) : (
-                  rankings?.map((student, index) => {
+                  rankings?.map((student) => {
                     const isCurrentUser = student.user_id === user?.id;
                     const getRankColor = (rank) => {
                       if (rank === 1) return "from-amber-400 to-yellow-500";

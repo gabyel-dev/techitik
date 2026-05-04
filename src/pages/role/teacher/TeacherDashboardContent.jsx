@@ -149,9 +149,9 @@ export default function TeacherDashboardContent() {
       </div>
 
       <main className="__main_container__ flex gap-8 w-full relative">
-        <section className="__overview__ flex-[2]">
+        <section className="__overview__ flex-[2] ">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group">
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-xl hover:shadow-xl hover:shadow-emerald-200 transition-shadow duration-200 group">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 shadow-sm group-hover:scale-105 transition-transform">
@@ -171,7 +171,7 @@ export default function TeacherDashboardContent() {
 
             <div
               onClick={() => navigate(`/dashboard/t/${user.id}/students`)}
-              className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer"
+              className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-xl hover:shadow-xl hover:shadow-emerald-200 transition-shadow duration-200 group cursor-pointer"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -190,7 +190,7 @@ export default function TeacherDashboardContent() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-xl hover:shadow-xl hover:shadow-emerald-200 transition-shadow duration-200 group cursor-pointer">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-50 to-amber-100 text-amber-600 shadow-sm group-hover:scale-105 transition-transform">
@@ -208,7 +208,7 @@ export default function TeacherDashboardContent() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200 group cursor-pointer">
+            <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-xl hover:shadow-xl hover:shadow-emerald-200 transition-shadow duration-200 group cursor-pointer">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 text-purple-600 shadow-sm group-hover:scale-105 transition-transform">
