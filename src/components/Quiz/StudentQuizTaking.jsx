@@ -9,6 +9,7 @@ import {
   LogViolation,
 } from "../../api/attempt";
 import { useAuth } from "../../context/authContext";
+import useFocusGuard from "../../utils/focusGuard/useFocusGuard";
 import { Loader } from "../loader";
 import toast from "react-hot-toast";
 import { PiWarningDuotone, PiEyeDuotone, PiXBold } from "react-icons/pi";
@@ -26,7 +27,6 @@ export default function StudentQuizTaking() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [quizClosed, setQuizClosed] = useState(false);
   const saveTimeoutRef = useRef({});
-  const lastViolationRef = useRef(0);
 
   useEffect(() => {
     initializeQuiz();
@@ -38,44 +38,6 @@ export default function StudentQuizTaking() {
 
     return () => clearInterval(statusInterval);
   }, [quizId]);
-
-  useEffect(() => {
-    if (!attempt || attempt.status !== "in_progress") return;
-
-    const handleVisibilityChange = () => {
-      const now = Date.now();
-      if (now - lastViolationRef.current < 1000) return;
-
-      if (document.hidden) {
-        lastViolationRef.current = now;
-        handleViolation("hidden");
-      } else {
-        LogViolation(attempt.id, "visible");
-      }
-    };
-
-    const handleBlur = () => {
-      const now = Date.now();
-      if (now - lastViolationRef.current < 1000) return;
-
-      lastViolationRef.current = now;
-      handleViolation("blur");
-    };
-
-    const handleFocus = () => {
-      LogViolation(attempt.id, "focus");
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("blur", handleBlur);
-    window.addEventListener("focus", handleFocus);
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("blur", handleBlur);
-      window.removeEventListener("focus", handleFocus);
-    };
-  }, [attempt]);
 
   const initializeQuiz = async () => {
     try {
@@ -156,6 +118,7 @@ export default function StudentQuizTaking() {
   };
 
   const handleViolation = async (eventType) => {
+    if (!attempt?.id || quizClosed) return;
     const response = await LogViolation(attempt.id, eventType);
     if (response.data) {
       setAttempt(response.data);
@@ -180,6 +143,19 @@ export default function StudentQuizTaking() {
       setTimeout(() => setShowWarning(false), 5000);
     }
   };
+
+  useFocusGuard({
+    enabled: Boolean(
+      attempt?.id && attempt.status === "in_progress" && !quizClosed,
+    ),
+    onPenaltyEvent: handleViolation,
+    onSignalEvent: (eventType) => {
+      if (!attempt?.id || quizClosed) return;
+      LogViolation(attempt.id, eventType).catch(() => {});
+    },
+    throttleMs: 500,
+    pollMs: 500,
+  });
 
   const handleAnswerChange = useCallback(
     (questionId, value, questionType) => {

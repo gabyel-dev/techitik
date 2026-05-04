@@ -1,6 +1,7 @@
 import {
   PiBellDuotone,
   PiMagnifyingGlassDuotone,
+  PiPlusDuotone,
   PiSignOutDuotone,
   PiUserDuotone,
 } from "react-icons/pi";
@@ -11,11 +12,14 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { logout } from "../../api/auth";
 import { DropdownModal } from "../Modal/DropdownModal";
+import toast from "react-hot-toast";
+import { CreateQuiz } from "../../api/quiz";
 
 export default function Header() {
   const { user, setUser } = useAuth();
   const { toggleSidebar } = useSidebar();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [creatingQuiz, setCreatingQuiz] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const { roomId } = useParams();
@@ -39,6 +43,29 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleCreateQuiz = async () => {
+    try {
+      setCreatingQuiz(true);
+      const response = await CreateQuiz({
+        roomId,
+        title: "Untitled Quiz",
+        description: "",
+      });
+      const quizId = response.data.id;
+      const teacherId = user.id;
+      if (location.pathname.includes("/dashboard/t/")) {
+        navigate(`/dashboard/t/${teacherId}/room/${roomId}/quiz/${quizId}`);
+      } else {
+        navigate(`quiz/${quizId}`);
+      }
+      toast.success("Quiz created successfully!");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to create quiz");
+    } finally {
+      setCreatingQuiz(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -50,7 +77,7 @@ export default function Header() {
   };
 
   return (
-    <header className="flex sticky z-4 top-0 h-14 sm:h-16 items-center justify-between border-b border-slate-200/60 bg-slate-100 backdrop-blur-xl px-3 sm:px-8 shadow-sm ">
+    <header className="flex sticky z-34  top-0 h-14 sm:h-16 items-center justify-between border-b border-slate-200/60 bg-slate-100 backdrop-blur-xl px-3 sm:px-8 shadow-sm ">
       <div className="flex items-center justify-center gap-2 sm:gap-3">
         <button
           onClick={toggleSidebar}
@@ -72,7 +99,23 @@ export default function Header() {
           <PiBellDuotone size={18} className="sm:w-[22px] sm:h-[22px]" />
           <span className="absolute right-1 top-1 sm:right-1.5 sm:top-1.5 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full border-2 border-white bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/20"></span>
         </button>
-        <div className="hidden sm:block h-6 w-px bg-slate-200"></div>
+
+        <div className=" py-4 sm:py-5 hidden md:block">
+          <div className="flex items-center w-full justify-between">
+            <div className="flex justify-end items-center w-full">
+              {user.role === "teacher" && (
+                <button
+                  onClick={handleCreateQuiz}
+                  disabled={creatingQuiz}
+                  className=" flex w-fit shadow-2xl shadow-emerald-500/70 items-center justify-center gap-2 px-4 py-2.5 bg-[var(--primary)] text-white text-sm font-medium rounded-lg hover:bg-emerald-500/70 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+                >
+                  <PiPlusDuotone size={20} />
+                  <span>{creatingQuiz ? "Creating..." : "New Quiz"}</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
 
         <div className="relative" ref={dropdownRef}>
           <div

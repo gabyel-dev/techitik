@@ -50,7 +50,7 @@ export default function StudentHeader() {
   };
 
   return (
-    <header className="flex sticky top-0 h-14 sm:h-16 items-center justify-between border-b border-slate-200/60 bg-slate-100   backdrop-blur-xl px-3 sm:px-8 shadow-sm z-4">
+    <header className="flex sticky top-0 h-14 sm:h-16 items-center justify-between border-b border-slate-200/60 bg-slate-100   backdrop-blur-xl px-3 sm:px-8 shadow-sm z-34">
       <div className="flex items-center justify-center gap-2 sm:gap-3">
         <button
           onClick={toggleSidebar}
