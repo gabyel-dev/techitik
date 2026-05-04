@@ -82,9 +82,9 @@ export const GetStudentRoomLists = () => {
               }`}
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div
-                    className={`${isOpen ? "" : "flex items-center justify-center w-full"} flex-1 min-w-0`}
+                    className={`${isOpen ? "" : "flex items-center justify-center w-full flex-1 min-w-0"} flex-1 min-w-0`}
                   >
                     <h3 className="font-semibold text-[var(--text-green)] truncate group-hover:text-emerald-600 transition-colors">
                       {isOpen ? room?.name : room?.name?.charAt(0)}

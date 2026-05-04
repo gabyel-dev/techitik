@@ -37,7 +37,7 @@ export default function SharedSidebar({
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-[45] transition-opacity duration-300"
+          className="lg:hidden fixed inset-0 bg-black/50 z-45 overflow-hidden touch-none transition-opacity duration-300"
           onClick={() => setIsOpen(false)}
         />
       )}
