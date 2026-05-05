@@ -1,17 +1,20 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useMemo } from "react";
 import { Dashboard, Award } from "@duo-icons/react";
 import { GetStudentRoomLists } from "./StudentDashboard/RoomLists";
 import SharedSidebar from "./shared/SharedSidebar";
+import { useRooms } from "../context/roomsContext";
 
 export default function StudentSidebar() {
-  const location = useLocation();
+  const { rooms, loading, refetchRooms } = useRooms();
 
   const navItems = [
     {
       name: "Dashboard",
       icon: Dashboard,
       path: ".",
-      isActive: location.pathname.split("/").length === 4 && !location.pathname.includes("/room/"),
+      isActive:
+        location.pathname.split("/").length === 4 &&
+        !location.pathname.includes("/room/"),
     },
     {
       name: "Achievements",
@@ -21,10 +24,21 @@ export default function StudentSidebar() {
     },
   ];
 
+  const RoomListComponent = useMemo(
+    () => () => (
+      <GetStudentRoomLists
+        rooms={rooms}
+        loading={loading}
+        onRefetch={refetchRooms}
+      />
+    ),
+    [rooms, loading, refetchRooms],
+  );
+
   return (
     <SharedSidebar
       navItems={navItems}
-      roomListComponent={GetStudentRoomLists}
+      roomListComponent={RoomListComponent}
       roomsTitle="My Classes"
     />
   );

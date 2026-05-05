@@ -23,13 +23,13 @@ export default function Header() {
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const { roomId } = useParams();
-  const [roomCode, setRoomCode] = useState(null);
+  const [roomName, setRoomName] = useState("");
 
   useEffect(() => {
     const storedRoom = sessionStorage.getItem(`room_${roomId}`);
 
     const room = JSON.parse(storedRoom);
-    setRoomCode(room?.room_code);
+    setRoomName(room?.name);
   }, [roomId]);
 
   useEffect(() => {
@@ -77,8 +77,8 @@ export default function Header() {
   };
 
   return (
-    <header className="flex sticky z-34  top-0 h-14 sm:h-16 items-center justify-between border-b border-slate-200/60 bg-slate-100 backdrop-blur-xl px-3 sm:px-8 shadow-sm ">
-      <div className="flex items-center justify-center gap-2 sm:gap-3">
+    <header className="flex sticky z-34  top-0 h-14 sm:h-16 items-center justify-between  bg-slate-100 backdrop-blur-xl px-3 sm:px-8 shadow-sm ">
+      <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
         <button
           onClick={toggleSidebar}
           className="cursor-pointer hover:opacity-80 transition-opacity"
@@ -86,11 +86,9 @@ export default function Header() {
           <Menu size={20} className="w-8 h-8 " color="var(--primary)" />
         </button>
         <img src="/logo.png" alt="PTC Logo" className="w-7 sm:w-9" />
-      </div>
 
-      <div className="flex items-center w-fit max-w-fit  px-4 py-2.5  transition-all duration-300">
-        <span className="text-sm font-semibold text-[var(--primary)] font-[var(--font-heading)] uppercase">
-          {roomCode}
+        <span className="hover:underline hover:text-emerald-700 truncate">
+          {roomName ? roomName : ""}
         </span>
       </div>
 

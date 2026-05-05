@@ -304,17 +304,20 @@ export default function TeacherSubmissions() {
                     <LoaderSpinner />
                   </span>
                 ) : (
-                  filteredSubmissions.map((submission) => {
+                  filteredSubmissions.map((submission, index) => {
                     const hasPenalty = (submission.violation_count || 0) > 3;
                     const statusBadge = getStatusBadge(submission.status);
                     const isNotStarted = submission.status === "not_started";
 
                     return (
                       <tr
-                        key={submission?.id}
+                        key={
+                          submission?.id ||
+                          `submission-${submission.student_id}-${index}`
+                        }
                         className={`hover:bg-slate-50 transition-colors ${
                           hasPenalty
-                            ? "bg-red-50/30"
+                            ? "bg-red-50"
                             : isNotStarted
                               ? "bg-slate-50/50"
                               : ""

@@ -41,7 +41,7 @@ export const GetRoomLists = () => {
   return (
     <div className="space-y-4 w-full pb-3">
       <div className="space-y-3 ">
-        {rooms.map((room) => {
+        {rooms.map((room, index) => {
           const isActive = location.pathname.includes(`/room/${room?.id}`);
           return (
             <div
@@ -58,9 +58,11 @@ export const GetRoomLists = () => {
                   <div
                     className={`${isOpen ? "flex items-center gap-4" : "flex items-center justify-center w-full flex-1 min-w-0"} flex-1 min-w-0`}
                   >
-                    <span className=" rounded-full text-[var(--text-green)]  group-hover:text-emerald-600 transition-colors flex items-center justify-center h-7 min-w-7 bg-[var(--nav)]/30">
+                    <span
+                      className={`${index % 3 === 0 ? "bg-emerald-100" : index % 3 === 1 ? "bg-blue-100" : "bg-amber-100"} rounded-full text-[var(--text-green)]  group-hover:text-emerald-600 transition-colors flex items-center justify-center h-7 min-w-7 `}
+                    >
                       <h1 className="pt-0.5 text-sm">
-                        {room?.name?.charAt(0)}
+                        {room?.name?.charAt(0).toUpperCase()}
                       </h1>
                     </span>
                     <span className="flex flex-col flex-1 min-w-0">

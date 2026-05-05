@@ -54,6 +54,8 @@ export default function ArchivedRooms() {
       await RestoreRoom(roomId);
       toast.success("Room restored successfully");
       fetchRooms();
+      window.dispatchEvent(new Event("roomUpdated"));
+      return () => window.removeEventListener("roomUpdated", fetchRooms);
     } catch (err) {
       toast.error("Failed to restore room");
     } finally {

@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSidebar } from "../../context/sidebarContext";
 import {
@@ -6,40 +5,19 @@ import {
   PiUsersDuotone,
   PiArrowRightDuotone,
 } from "react-icons/pi";
-import { GetStudentRooms } from "../../api/rooms";
 import { LoaderSpinner } from "../loader";
 
-export const GetStudentRoomLists = () => {
+export const GetStudentRoomLists = ({ rooms, loading, onRefetch }) => {
   const { isOpen, setIsOpen, isDesktop } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
-  const [rooms, setRooms] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   const handleRoomClick = (roomId) => {
     navigate(`room/${roomId}`);
-    // Close sidebar on mobile after clicking
     if (!isDesktop) {
       setIsOpen(false);
     }
   };
-
-  const fetchStudentRooms = async () => {
-    setLoading(true);
-    try {
-      const data = await GetStudentRooms();
-      setRooms(data.data || []);
-    } catch (error) {
-      console.error("Failed to fetch student rooms:", error);
-      setRooms([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStudentRooms();
-  }, []);
 
   if (loading) {
     return <LoaderSpinner />;
@@ -47,13 +25,14 @@ export const GetStudentRoomLists = () => {
 
   if (!rooms || rooms.length === 0) {
     return (
-      <div className="space-y-4 w-full ">
+      <div className="space-y-4 w-full">
         <div className="text-center py-8 text-slate-500 text-sm">
           No classes yet. Join your first class!
         </div>
+
         <button
-          onClick={fetchStudentRooms}
-          className="text-center w-full bg-[var(--primary)] text-white py-2 "
+          onClick={onRefetch}
+          className="text-center w-full bg-[var(--primary)] text-white py-2 rounded-lg hover:bg-emerald-600 transition-colors"
         >
           Retry
         </button>
@@ -64,7 +43,7 @@ export const GetStudentRoomLists = () => {
   return (
     <div className="space-y-4 w-full">
       <div className="space-y-1">
-        {rooms.map((room) => {
+        {rooms.map((room, index) => {
           const isActive = location.pathname.includes(`/room/${room?.id}`);
           return (
             <div
@@ -81,9 +60,11 @@ export const GetStudentRoomLists = () => {
                   <div
                     className={`${isOpen ? "flex items-center gap-4" : "flex items-center justify-center w-full flex-1 min-w-0"} flex-1 min-w-0`}
                   >
-                    <span className=" rounded-full text-[var(--text-green)]  group-hover:text-emerald-600 transition-colors flex items-center justify-center h-7 min-w-7 bg-[var(--nav)]/30">
+                    <span
+                      className={`${index % 3 === 0 ? "bg-[var(--primary)]/30" : index % 3 === 1 ? "bg-violet-400/50" : "bg-amber-200/50"} rounded-full text-[var(--text-green)]  group-hover:text-emerald-600 transition-colors flex items-center justify-center h-7 min-w-7 `}
+                    >
                       <h1 className="pt-0.5 text-sm">
-                        {room?.name?.charAt(0)}
+                        {room?.name?.charAt(0).toUpperCase()}
                       </h1>
                     </span>
                     <span className="flex flex-col flex-1 min-w-0">

@@ -39,6 +39,7 @@ export default function RoomInvite() {
         } else {
           setStatus("success");
           setMessage("Successfully joined the room!");
+          window.dispatchEvent(new Event("roomUpdated"));
         }
 
         // Redirect to room after 2 seconds

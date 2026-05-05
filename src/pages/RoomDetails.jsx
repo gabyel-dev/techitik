@@ -51,6 +51,9 @@ import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
 import { useWindowScroll } from "../utils/useWindowScroll";
 import { useRoom } from "../context/roomContext";
+import ArchiveModalRoom from "../components/Modal/Room/ArchiveModalRoom";
+import DeleteModalRoom from "../components/Modal/Room/DeleteModalRoom";
+import RoomRankingList from "../components/RoomRankingList";
 
 export default function RoomDetails() {
   const navigate = useNavigate();
@@ -200,6 +203,36 @@ export default function RoomDetails() {
 
   if (loading) {
     return <RoomDetailSkeleton />;
+  }
+
+  if (!room) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 flex items-center justify-center">
+            <PiWarningDuotone size={32} className="text-red-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">
+            Room Not Found
+          </h2>
+          <p className="text-slate-600 mb-6">
+            This room doesn't exist or has been deleted.
+          </p>
+          <button
+            onClick={() =>
+              navigate(
+                user.role === "teacher"
+                  ? `/dashboard/t/${user.id}`
+                  : `/dashboard/s/${user.id}`,
+              )
+            }
+            className="px-6 py-2.5 bg-emerald-500 text-white rounded-lg font-semibold hover:bg-emerald-600 transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -660,118 +693,7 @@ export default function RoomDetails() {
 
               {/* Rankings List */}
               <div className="divide-y divide-slate-100 max-h-[600px] overflow-y-auto">
-                {rankings?.length === 0 ? (
-                  <div className="px-5 sm:px-6 py-12 text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
-                      <PiTrophyDuotone size={32} className="text-slate-400" />
-                    </div>
-                    <p className="text-sm text-slate-500 font-medium">
-                      No rankings yet
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Complete quizzes to see rankings
-                    </p>
-                  </div>
-                ) : (
-                  rankings?.map((student) => {
-                    const isCurrentUser = student.user_id === user?.id;
-                    const getRankColor = (rank) => {
-                      if (rank === 1) return "from-amber-400 to-yellow-500";
-                      if (rank === 2) return "from-slate-300 to-slate-400";
-                      if (rank === 3) return "from-orange-400 to-amber-600";
-                      return "from-slate-200 to-slate-300";
-                    };
-
-                    return (
-                      <div
-                        key={student.user_id}
-                        className={`px-5 sm:px-6 py-4 transition-colors ${
-                          isCurrentUser
-                            ? "bg-emerald-50 border-l-4 border-emerald-500"
-                            : "hover:bg-slate-50"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          {/* Profile Image with Rank Badge */}
-                          <div className="relative flex-shrink-0">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center text-white font-bold text-lg overflow-hidden border-2 border-white shadow-sm">
-                              <img
-                                src={`https://juexwulmukznvepvtzts.supabase.co/storage/v1/object/public/profiles/${student.google_id}.png`}
-                                alt={student.full_name}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                            {/* Rank Badge Overlay */}
-                            <div
-                              className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br ${getRankColor(student.rank)} flex items-center justify-center border-2 border-white shadow-md`}
-                            >
-                              {student.rank <= 3 ? (
-                                <PiMedalDuotone
-                                  size={14}
-                                  className="text-white"
-                                />
-                              ) : (
-                                <span className="text-[10px] font-bold text-white">
-                                  #{student.rank}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Student Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <p
-                                className={`text-sm font-semibold truncate ${
-                                  isCurrentUser
-                                    ? "text-emerald-700"
-                                    : "text-slate-900"
-                                }`}
-                              >
-                                {student.full_name}
-                                {isCurrentUser && (
-                                  <span className="ml-1 text-xs">(You)</span>
-                                )}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-slate-500">
-                              <span className="font-medium">
-                                {student.total_score} pts
-                              </span>
-                              <span>•</span>
-                              <span>
-                                {student.quizzes_taken} quiz
-                                {student.quizzes_taken !== 1 ? "zes" : ""}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Average Score Badge */}
-                          {student.quizzes_taken > 0 && (
-                            <div className="flex-shrink-0 text-right">
-                              <p className="text-xs text-slate-500 font-medium mb-0.5">
-                                Avg
-                              </p>
-                              <p
-                                className={`text-sm font-bold ${
-                                  student.average_score >= 80
-                                    ? "text-emerald-600"
-                                    : student.average_score >= 60
-                                      ? "text-blue-600"
-                                      : student.average_score >= 40
-                                        ? "text-amber-600"
-                                        : "text-red-600"
-                                }`}
-                              >
-                                {student.average_score}
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
+                <RoomRankingList rankings={rankings} user={user} />
               </div>
             </div>
           </div>
@@ -877,104 +799,25 @@ export default function RoomDetails() {
           </div>
         </div>
       )}
+
       {/* Room Archive Confirmation Modal */}
       {showRoomArchiveModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-fadeIn">
-            <div className="flex items-start justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <PiArchiveDuotone size={24} className="text-amber-600" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900">
-                  Archive Room?
-                </h3>
-              </div>
-              <button
-                onClick={() => setShowRoomArchiveModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
-              >
-                <PiXBold size={20} />
-              </button>
-            </div>
-            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-              Are you sure you want to archive{" "}
-              <span className="font-semibold text-slate-900">
-                "{room?.name}"
-              </span>
-              ? It will be hidden from the active rooms list.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowRoomArchiveModal(false)}
-                disabled={processing}
-                className="flex-1 px-4 py-2.5 border-2 border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleArchiveRoom}
-                disabled={processing}
-                className="flex-1 px-4 py-2.5 bg-amber-500 text-white text-sm font-semibold rounded-lg hover:bg-amber-600 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
-              >
-                {processing ? "Archiving..." : "Archive"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ArchiveModalRoom
+          setShowRoomArchiveModal={setShowRoomArchiveModal}
+          room={room}
+          handleArchiveRoom={handleArchiveRoom}
+          loading={processing}
+        />
       )}
 
       {/* Room Delete Confirmation Modal */}
       {showRoomDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl animate-fadeIn">
-            <div className="flex items-start justify-between mb-5">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <PiWarningDuotone size={24} className="text-red-600" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900">
-                  Delete Room?
-                </h3>
-              </div>
-              <button
-                onClick={() => setShowRoomDeleteModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
-              >
-                <PiXBold size={20} />
-              </button>
-            </div>
-            <p className="text-sm text-slate-600 mb-3 leading-relaxed">
-              Are you sure you want to delete{" "}
-              <span className="font-semibold text-slate-900">
-                "{room?.name}"
-              </span>
-              ?
-            </p>
-            <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 mb-6">
-              <p className="text-xs text-amber-800 font-semibold leading-relaxed">
-                ⚠️ This room will be moved to the recycle bin. You can restore
-                it later or permanently delete it.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowRoomDeleteModal(false)}
-                disabled={processing}
-                className="flex-1 px-4 py-2.5 border-2 border-slate-200 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteRoom}
-                disabled={processing}
-                className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-lg hover:bg-red-600 active:scale-95 transition-all disabled:opacity-50 min-h-[44px]"
-              >
-                {processing ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteModalRoom
+          setShowRoomDeleteModal={setShowRoomDeleteModal}
+          room={room}
+          handleDeleteRoom={handleDeleteRoom}
+          loading={processing}
+        />
       )}
     </div>
   );

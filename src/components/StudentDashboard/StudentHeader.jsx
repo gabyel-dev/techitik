@@ -19,7 +19,14 @@ export default function StudentHeader() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
-  const [roomCode, setRoomCode] = useState("");
+  const [roomName, setRoomName] = useState("");
+
+  useEffect(() => {
+    const storedRoom = sessionStorage.getItem(`room_${roomId}`);
+
+    const room = JSON.parse(storedRoom);
+    setRoomName(room?.name);
+  }, [roomId]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -31,13 +38,6 @@ export default function StudentHeader() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  useEffect(() => {
-    const storedRoom = sessionStorage.getItem(`room_${roomId}`);
-
-    const room = JSON.parse(storedRoom);
-    setRoomCode(room?.room_code);
-  }, [roomId]);
 
   const handleLogout = async () => {
     try {
@@ -59,11 +59,8 @@ export default function StudentHeader() {
           <Menu size={20} className="w-8 h-8" color="var(--primary)" />
         </button>
         <img src="/logo.png" alt="PTC Logo" className="w-7 sm:w-9" />
-      </div>
-
-      <div className="flex items-center w-fit max-w-fit  px-4 py-2.5  transition-all duration-300">
-        <span className="text-md font-semibold text-[var(--primary)] font-[var(--font-heading)] uppercase">
-          {roomCode}
+        <span className="hover:underline hover:text-emerald-700 truncate">
+          {roomName ? roomName : ""}
         </span>
       </div>
 

@@ -90,6 +90,7 @@ export default function StudentDashboard() {
       await JoinRoom({ room_code: roomCode });
       toast.success("Joined room successfully!");
       setRoomCode("");
+      window.dispatchEvent(new Event("roomUpdated"));
       fetchDashboardData();
     } catch (err) {
       toast.error("Failed to join room");

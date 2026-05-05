@@ -31,15 +31,19 @@ function TeacherLayoutContent() {
   }, [refetchRooms]);
 
   return (
-    <div className="relative flex h-screen w-full bg-white text-slate-800 font-[var(--font-body)]">
-      <Sidebar />
-      <main className="flex w-full flex-col overflow-hidden">
+    <>
+      <div className="fixed  h-screen w-full bg-white text-slate-800 font-[var(--font-body)]">
         <Header />
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          <Outlet />
+        <div className="relative flex h-screen w-full bg-white text-slate-800 font-[var(--font-body)]">
+          <Sidebar />
+          <main className="flex w-full flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+              <Outlet />
+            </div>
+          </main>
         </div>
-      </main>
-    </div>
+      </div>
+    </>
   );
 }
 

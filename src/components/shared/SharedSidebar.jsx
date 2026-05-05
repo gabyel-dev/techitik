@@ -1,7 +1,8 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { useSidebar } from "../../context/sidebarContext";
 import { PiGearDuotone, PiSignOutDuotone } from "react-icons/pi";
+import Header from "../TeacherDashboard/Header";
 
 export default function SharedSidebar({
   navItems,
@@ -11,7 +12,6 @@ export default function SharedSidebar({
   const { isOpen, setIsOpen, isPinned, isDesktop } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
-  const sidebarRef = useRef(null);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -87,16 +87,15 @@ export default function SharedSidebar({
 
       {/* Sidebar */}
       <aside
-        ref={sidebarRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className={`__side_bar__ flex flex-col bg-white border-r-slate-300 border-1 ease-in-out z-[46] fixed lg:sticky inset-y-0 left-0 shadow-xl lg:shadow-none ${
+        className={`__side_bar__ flex flex-col  bg-white border-r-slate-300 border-r-1 ease-in-out z-[46] fixed lg:sticky inset-y-0 left-0 shadow-xl lg:shadow-none ${
           isOpen
-            ? "translate-x-0 w-[280px] lg:w-72"
-            : "-translate-x-full lg:translate-x-0 lg:w-20"
+            ? "translate-x-0 w-72 min-w-0"
+            : "-translate-x-full lg:translate-x-0 md:w-20"
         } ${isDragging ? "transition-none" : "transition-all duration-300"}`}
         style={{
           height: "100vh",
@@ -107,7 +106,7 @@ export default function SharedSidebar({
         }}
       >
         {/* Logo Section */}
-        <div className="flex flex-col items-center sticky top-0 z-10 bg-gradient-to-b from-white to-transparent pb-4">
+        {/*   <div className="flex flex-col items-center sticky top-0 z-10 bg-gradient-to-b from-white to-transparent pb-4">
           <div
             className={`flex w-full items-center justify-center bg-gradient-to-br from-emerald-500 to-emerald-600 transition-all duration-300 ${
               isOpen ? "h-24 rounded-b-3xl" : "h-20 rounded-b-2xl"
@@ -121,11 +120,11 @@ export default function SharedSidebar({
               }`}
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Navigation Links */}
         <nav
-          className={`flex flex-col gap-1.5 px-3 mt-2 ${
+          className={`flex flex-col gap-1.5 px-3 mt-5 ${
             isOpen ? "" : "items-center"
           }`}
         >
