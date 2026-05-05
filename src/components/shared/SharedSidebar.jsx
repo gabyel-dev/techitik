@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-
+import { useState, useRef, useEffect } from "react";
 import { useSidebar } from "../../context/sidebarContext";
 import { PiGearDuotone, PiSignOutDuotone } from "react-icons/pi";
 
@@ -11,6 +11,61 @@ export default function SharedSidebar({
   const { isOpen, setIsOpen, isPinned, isDesktop } = useSidebar();
   const navigate = useNavigate();
   const location = useLocation();
+  const sidebarRef = useRef(null);
+  const [touchStart, setTouchStart] = useState(0);
+  const [touchEnd, setTouchEnd] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+    setTouchEnd(e.targetTouches[0].clientX);
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    const currentTouch = e.targetTouches[0].clientX;
+    setTouchEnd(currentTouch);
+    
+    const diff = currentTouch - touchStart;
+    if (isOpen && diff < 0) {
+      setDragOffset(Math.max(diff, -280));
+    } else if (!isOpen && diff > 0 && touchStart < 50) {
+      setDragOffset(Math.min(diff, 280));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && isOpen) {
+      setIsOpen(false);
+    } else if (isRightSwipe && !isOpen) {
+      setIsOpen(true);
+    }
+    
+    setDragOffset(0);
+  };
+
+  useEffect(() => {
+    const handleEdgeSwipe = (e) => {
+      if (isDesktop) return;
+      if (e.touches[0].clientX < 20 && !isOpen) {
+        setIsOpen(true);
+      }
+    };
+
+    document.addEventListener('touchstart', handleEdgeSwipe);
+    return () => document.removeEventListener('touchstart', handleEdgeSwipe);
+  }, [isOpen, isDesktop, setIsOpen]);
 
   const handleNavClick = (path) => {
     navigate(path);
@@ -44,14 +99,21 @@ export default function SharedSidebar({
 
       {/* Sidebar */}
       <aside
+        ref={sidebarRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        className={`__side_bar__ flex flex-col bg-white  border-r-slate-300 border-1 transition-all duration-300 ease-in-out z-[46] fixed lg:sticky inset-y-0 left-0 shadow-xl lg:shadow-none ${
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className={`__side_bar__ flex flex-col bg-white border-r-slate-300 border-1 ease-in-out z-[46] fixed lg:sticky inset-y-0 left-0 shadow-xl lg:shadow-none ${
           isOpen
             ? "translate-x-0 w-[280px] lg:w-72"
             : "-translate-x-full lg:translate-x-0 lg:w-20"
-        }`}
-        style={{ height: "100vh" }}
+        } ${isDragging ? "transition-none" : "transition-all duration-300"}`}
+        style={{ 
+          height: "100vh",
+          transform: isDragging && !isDesktop ? `translateX(${isOpen ? dragOffset : 280 + dragOffset}px)` : undefined
+        }}
       >
         {/* Logo Section */}
         <div className="flex flex-col items-center sticky top-0 z-10 bg-gradient-to-b from-white to-transparent pb-4">

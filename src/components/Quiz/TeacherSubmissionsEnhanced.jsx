@@ -21,12 +21,14 @@ import {
 import { useAuth } from "../../context/authContext";
 import { useRoom } from "../../context/roomContext";
 import { formatDateTimeShort } from "../../utils/dateFormatter";
+import { LoaderSpinner } from "../loader";
 
 export default function TeacherSubmissions() {
   const { quizId } = useParams();
   const { user } = useAuth();
   const { room } = useRoom();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [submissions, setSubmissions] = useState([]);
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [violations, setViolations] = useState([]);
@@ -37,7 +39,12 @@ export default function TeacherSubmissions() {
   const [filterStatus, setFilterStatus] = useState("all"); // all, submitted, not_started, in_progress
 
   useEffect(() => {
-    fetchSubmissions();
+    setLoading(true);
+    try {
+      fetchSubmissions();
+    } finally {
+      setLoading(false);
+    }
     const interval = setInterval(fetchSubmissions, 5000);
     return () => clearInterval(interval);
   }, [quizId]);
@@ -165,7 +172,7 @@ export default function TeacherSubmissions() {
       <div className="max-w-7xl mx-auto">
         <div className="flex w-fit pb-5">
           <Link
-            to={`/dashboard/t/${user.id}/room/${room.id}/quiz/${quizId}/details`}
+            to={`/dashboard/t/${user?.id}/room/${room?.id}/quiz/${quizId}/details`}
             replace={true}
             className="flex items-center gap-2 "
           >
@@ -290,133 +297,142 @@ export default function TeacherSubmissions() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredSubmissions.map((submission) => {
-                  const hasPenalty = (submission.violation_count || 0) > 3;
-                  const statusBadge = getStatusBadge(submission.status);
-                  const isNotStarted = submission.status === "not_started";
+              <tbody className="divide-y divide-slate-100 w-full">
+                {loading ? (
+                  <span className="w-full flex items-center justify-center">
+                    {" "}
+                    <LoaderSpinner />
+                  </span>
+                ) : (
+                  filteredSubmissions.map((submission) => {
+                    const hasPenalty = (submission.violation_count || 0) > 3;
+                    const statusBadge = getStatusBadge(submission.status);
+                    const isNotStarted = submission.status === "not_started";
 
-                  return (
-                    <tr
-                      key={submission.id || submission.student_id}
-                      className={`hover:bg-slate-50 transition-colors ${
-                        hasPenalty
-                          ? "bg-red-50/30"
-                          : isNotStarted
-                            ? "bg-slate-50/50"
-                            : ""
-                      }`}
-                    >
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="font-medium text-slate-900">
-                            {submission.users?.full_name}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {submission.users?.email}
-                          </p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.text}`}
-                        >
-                          {statusBadge.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="font-semibold text-slate-900">
-                          {isNotStarted
-                            ? "-"
-                            : `${submission.base_score || 0}/${submission.max_score || 0}`}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {isNotStarted ? (
-                          <span className="text-slate-400">-</span>
-                        ) : (
-                          <button
-                            onClick={() => handleViewViolations(submission)}
-                            className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                              hasPenalty
-                                ? "bg-red-100 text-red-700 hover:bg-red-200"
-                                : "bg-amber-100 text-amber-700 hover:bg-amber-200"
-                            }`}
+                    return (
+                      <tr
+                        key={submission?.id}
+                        className={`hover:bg-slate-50 transition-colors ${
+                          hasPenalty
+                            ? "bg-red-50/30"
+                            : isNotStarted
+                              ? "bg-slate-50/50"
+                              : ""
+                        }`}
+                      >
+                        <td className="px-6 py-4">
+                          <div>
+                            <p className="font-medium text-slate-900">
+                              {submission.users?.full_name}
+                            </p>
+                            <p className="text-xs text-slate-500">
+                              {submission.users?.email}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${statusBadge.bg} ${statusBadge.text}`}
                           >
-                            <PiWarningDuotone size={16} />
-                            {submission.violation_count || 0}
-                          </button>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`font-semibold ${hasPenalty ? "text-red-600" : "text-slate-400"}`}
-                        >
-                          {isNotStarted
-                            ? "-"
-                            : `-${submission.penalty_score || 0}`}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="font-bold text-lg text-slate-900">
-                          {isNotStarted ? "-" : submission.final_score || 0}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-sm text-slate-600">
-                          {formatDateTimeShort(submission.submitted_at)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2">
-                          {submission.status === "submitted" &&
-                          submission.id ? (
-                            <>
-                              <button
-                                onClick={() => handleViewResponses(submission)}
-                                className="flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
-                              >
-                                <PiNoteDuotone size={16} />
-                                View Answers
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleReleaseScore(submission.id)
-                                }
-                                disabled={submission.score_released}
-                                className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                                  submission.score_released
-                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                    : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
-                                }`}
-                              >
-                                {submission.score_released ? (
-                                  <>
-                                    <PiCheckCircleDuotone size={16} />
-                                    Released
-                                  </>
-                                ) : (
-                                  <>
-                                    <PiEyeDuotone size={16} />
-                                    Release
-                                  </>
-                                )}
-                              </button>
-                            </>
-                          ) : isNotStarted ? (
-                            <span className="text-xs text-slate-400 italic">
-                              No submission yet
-                            </span>
-                          ) : submission.status === "in_progress" ? (
-                            <span className="text-xs text-blue-600 italic">
-                              Quiz in progress...
-                            </span>
-                          ) : null}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                            {statusBadge.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-semibold text-slate-900">
+                            {isNotStarted
+                              ? "-"
+                              : `${submission.base_score || 0}/${submission.max_score || 0}`}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {isNotStarted ? (
+                            <span className="text-slate-400">-</span>
+                          ) : (
+                            <button
+                              onClick={() => handleViewViolations(submission)}
+                              className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                                hasPenalty
+                                  ? "bg-red-100 text-red-700 hover:bg-red-200"
+                                  : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                              }`}
+                            >
+                              <PiWarningDuotone size={16} />
+                              {submission.violation_count || 0}
+                            </button>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`font-semibold ${hasPenalty ? "text-red-600" : "text-slate-400"}`}
+                          >
+                            {isNotStarted
+                              ? "-"
+                              : `-${submission.penalty_score || 0}`}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-bold text-lg text-slate-900">
+                            {isNotStarted ? "-" : submission.final_score || 0}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-sm text-slate-600">
+                            {formatDateTimeShort(submission.submitted_at)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex gap-2">
+                            {submission.status === "submitted" &&
+                            submission.id ? (
+                              <>
+                                <button
+                                  onClick={() =>
+                                    handleViewResponses(submission)
+                                  }
+                                  className="flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+                                >
+                                  <PiNoteDuotone size={16} />
+                                  View Answers
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleReleaseScore(submission.id)
+                                  }
+                                  disabled={submission.score_released}
+                                  className={`flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                                    submission.score_released
+                                      ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                      : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                                  }`}
+                                >
+                                  {submission.score_released ? (
+                                    <>
+                                      <PiCheckCircleDuotone size={16} />
+                                      Released
+                                    </>
+                                  ) : (
+                                    <>
+                                      <PiEyeDuotone size={16} />
+                                      Release
+                                    </>
+                                  )}
+                                </button>
+                              </>
+                            ) : isNotStarted ? (
+                              <span className="text-xs text-slate-400 italic">
+                                No submission yet
+                              </span>
+                            ) : submission.status === "in_progress" ? (
+                              <span className="text-xs text-blue-600 italic">
+                                Quiz in progress...
+                              </span>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
