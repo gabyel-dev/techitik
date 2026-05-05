@@ -80,11 +80,11 @@ export default function SharedSidebar({
             <button
               key={item.name}
               onClick={() => handleNavClick(item.path)}
-              className={`group relative flex items-center gap-3 rounded-xl transition-all duration-200 ${
+              className={`group relative flex items-center gap-4 rounded-full transition-all duration-200 ${
                 isOpen ? "px-4 py-3" : "p-3 justify-center"
               } ${
                 item.isActive
-                  ? "bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/30"
+                  ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
                   : "text-slate-600 hover:bg-slate-100 hover:text-emerald-600"
               }`}
               title={!isOpen ? item.name : ""}
@@ -115,7 +115,7 @@ export default function SharedSidebar({
 
         {/* Rooms Section Header */}
         {isOpen && (
-          <div className="flex items-center justify-between px-5 mb-3">
+          <div className="flex items-center justify-between px-5 pb-3">
             <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               {roomsTitle}
             </h2>

@@ -47,39 +47,33 @@ export const GetRoomLists = () => {
             <div
               key={room?.id}
               onClick={() => handleRoomClick(room?.id)}
-              className={`group relative rounded-3xl   p-5 shadow-xl hover:shadow-md  cursor-pointer outline-0 ${
+              className={`group relative rounded-full   py-2 px-3  cursor-pointer outline-0 ${
                 isActive
-                  ? "border-2 border-emerald-200 shadow-md shadow-emerald-200/30 bg-emerald-50"
+                  ? "border-2 border-emerald-200 shadow-md shadow-emerald-200/30 bg-slate-50"
                   : "hover:border-emerald-200 bg-white"
               }`}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="flex items-start justify-between ">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
                   <div
-                    className={`flex-1 min-w-0 ${isOpen ? "" : "flex items-center justify-center w-full"}`}
+                    className={`${isOpen ? "flex items-center gap-4" : "flex items-center justify-center w-full flex-1 min-w-0"} flex-1 min-w-0`}
                   >
-                    <h3 className="font-semibold truncate text-[var(--secondary)] group-hover:text-black/60 transition-colors">
-                      {isOpen ? room?.name : room?.name?.charAt(0)}
-                    </h3>
+                    <span className=" rounded-full text-[var(--text-green)]  group-hover:text-emerald-600 transition-colors flex items-center justify-center h-7 min-w-7 bg-[var(--nav)]/30">
+                      <h1 className="pt-0.5 text-sm">
+                        {room?.name?.charAt(0)}
+                      </h1>
+                    </span>
+                    <span className="flex flex-col flex-1 min-w-0">
+                      <h3 className="text-sm  font-medium text-[var(--text-green)] truncate group-hover:text-emerald-600 transition-colors">
+                        {room?.name}
+                      </h3>
+                      <span className="  text-xs    text-slate-400">
+                        {room?.section}
+                      </span>
+                    </span>
                   </div>
                 </div>
               </div>
-
-              {isOpen && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 pt-1 pb-0.5 rounded-full bg-[var(--secondary)] text-xs font-medium text-slate-50">
-                      {room?.section}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4 text-xl font-bold text-slat-500">
-                    <div className="flex items-center gap-1">
-                      <PiUsersDuotone size={14} />
-                      <span>{room?.member_count || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           );
         })}

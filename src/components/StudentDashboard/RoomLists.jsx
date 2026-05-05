@@ -7,6 +7,7 @@ import {
   PiArrowRightDuotone,
 } from "react-icons/pi";
 import { GetStudentRooms } from "../../api/rooms";
+import { LoaderSpinner } from "../loader";
 
 export const GetStudentRoomLists = () => {
   const { isOpen, setIsOpen, isDesktop } = useSidebar();
@@ -41,13 +42,7 @@ export const GetStudentRoomLists = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="space-y-4 w-full px-4">
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin h-8 w-8 border-4 border-emerald-500 border-t-transparent rounded-full"></div>
-        </div>
-      </div>
-    );
+    return <LoaderSpinner />;
   }
 
   if (!rooms || rooms.length === 0) {
@@ -68,46 +63,40 @@ export const GetStudentRoomLists = () => {
 
   return (
     <div className="space-y-4 w-full">
-      <div className="space-y-3">
+      <div className="space-y-1">
         {rooms.map((room) => {
           const isActive = location.pathname.includes(`/room/${room?.id}`);
           return (
             <div
               key={room?.id}
               onClick={() => handleRoomClick(room?.id)}
-              className={`group relative rounded-xl bg-[var(--bg)] p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer ${
+              className={`group relative  py-2 px-3    cursor-pointer outline-0 ${
                 isActive
-                  ? "border-2 border-emerald-500 shadow-md"
+                  ? "border-2  rounded-full   border-emerald-200 shadow-md shadow-emerald-200/30 bg-gray-200"
                   : "hover:border-emerald-200"
               }`}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3 flex-1 min-w-0">
+              <div className="flex items-start justify-between ">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
                   <div
-                    className={`${isOpen ? "" : "flex items-center justify-center w-full flex-1 min-w-0"} flex-1 min-w-0`}
+                    className={`${isOpen ? "flex items-center gap-4" : "flex items-center justify-center w-full flex-1 min-w-0"} flex-1 min-w-0`}
                   >
-                    <h3 className="font-semibold text-[var(--text-green)] truncate group-hover:text-emerald-600 transition-colors">
-                      {isOpen ? room?.name : room?.name?.charAt(0)}
-                    </h3>
+                    <span className=" rounded-full text-[var(--text-green)]  group-hover:text-emerald-600 transition-colors flex items-center justify-center h-7 min-w-7 bg-[var(--nav)]/30">
+                      <h1 className="pt-0.5 text-sm">
+                        {room?.name?.charAt(0)}
+                      </h1>
+                    </span>
+                    <span className="flex flex-col flex-1 min-w-0">
+                      <h3 className="text-sm  font-medium text-[var(--text-green)] truncate group-hover:text-emerald-600 transition-colors">
+                        {room?.name}
+                      </h3>
+                      <span className="  text-xs    text-slate-400">
+                        {room?.section}
+                      </span>
+                    </span>
                   </div>
                 </div>
               </div>
-
-              {isOpen && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-1 rounded-full bg-[var(--secondary)] text-xs font-medium text-slate-50">
-                      {room?.section}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-4 text-xl font-bold text-[var(--text-green)]">
-                    <div className="flex items-center gap-1">
-                      <PiUsersDuotone size={14} />
-                      <span>{room?.member_count || 0}</span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           );
         })}

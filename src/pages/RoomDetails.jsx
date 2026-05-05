@@ -229,17 +229,17 @@ export default function RoomDetails() {
       </div>
 
       <div className="w-full absolute">
-        <div className="  fixed  top-14 -translate-x-2  w-full h-64 md:h-90 ">
+        <div className="  absolute    w-full h-64 md:h-90 ">
           <img
             src="/bg/bg.png"
             alt="Room Background"
-            className="object-cover  brightness-60 w-full h-full"
+            className="object-cover  brightness-30 w-full h-full"
           />
         </div>
       </div>
 
-      <div className="relative z-10 flex gap-3 flex-col  w-full max-w-5xl mx-auto px-2 sm:px-6 lg:px-8 pt-[6rem] sm:pt-[8rem]">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sm:p-8">
+      <div className="relative z-10 flex gap-3 flex-col  w-full max-w-5xl mx-auto px-2 sm:px-6 lg:px-8 pt-[6rem] sm:pt-[10rem]">
+        <div className="bg-white rounded-md shadow-sm border border-slate-200 p-6 sm:p-8">
           {/* Header Section */}
           <div className="flex">
             <Link
