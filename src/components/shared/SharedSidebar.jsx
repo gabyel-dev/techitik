@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useSidebar } from "../../context/sidebarContext";
 import { PiGearDuotone, PiSignOutDuotone } from "react-icons/pi";
 
@@ -29,7 +29,7 @@ export default function SharedSidebar({
     if (!isDragging) return;
     const currentTouch = e.targetTouches[0].clientX;
     setTouchEnd(currentTouch);
-    
+
     const diff = currentTouch - touchStart;
     if (isOpen && diff < 0) {
       setDragOffset(Math.max(diff, -280));
@@ -41,7 +41,7 @@ export default function SharedSidebar({
   const handleTouchEnd = () => {
     if (!isDragging) return;
     setIsDragging(false);
-    
+
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
@@ -51,21 +51,9 @@ export default function SharedSidebar({
     } else if (isRightSwipe && !isOpen) {
       setIsOpen(true);
     }
-    
+
     setDragOffset(0);
   };
-
-  useEffect(() => {
-    const handleEdgeSwipe = (e) => {
-      if (isDesktop) return;
-      if (e.touches[0].clientX < 20 && !isOpen) {
-        setIsOpen(true);
-      }
-    };
-
-    document.addEventListener('touchstart', handleEdgeSwipe);
-    return () => document.removeEventListener('touchstart', handleEdgeSwipe);
-  }, [isOpen, isDesktop, setIsOpen]);
 
   const handleNavClick = (path) => {
     navigate(path);
@@ -110,9 +98,12 @@ export default function SharedSidebar({
             ? "translate-x-0 w-[280px] lg:w-72"
             : "-translate-x-full lg:translate-x-0 lg:w-20"
         } ${isDragging ? "transition-none" : "transition-all duration-300"}`}
-        style={{ 
+        style={{
           height: "100vh",
-          transform: isDragging && !isDesktop ? `translateX(${isOpen ? dragOffset : 280 + dragOffset}px)` : undefined
+          transform:
+            isDragging && !isDesktop
+              ? `translateX(${isOpen ? dragOffset : 280 + dragOffset}px)`
+              : undefined,
         }}
       >
         {/* Logo Section */}
