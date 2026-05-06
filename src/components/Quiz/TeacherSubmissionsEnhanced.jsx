@@ -284,6 +284,9 @@ export default function TeacherSubmissions() {
                     Violations
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">
+                    Tamper
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">
                     Penalty
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase">
@@ -362,6 +365,17 @@ export default function TeacherSubmissions() {
                               <PiWarningDuotone size={16} />
                               {submission.violation_count || 0}
                             </button>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          {isNotStarted ? (
+                            <span className="text-slate-400">-</span>
+                          ) : submission.has_tamper_attempt ? (
+                            <span className="flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold bg-red-600 text-white">
+                              🚨 DETECTED
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-xs">None</span>
                           )}
                         </td>
                         <td className="px-6 py-4">
@@ -646,35 +660,58 @@ export default function TeacherSubmissions() {
               </div>
               <div className="p-6 overflow-y-auto max-h-[60vh]">
                 <div className="space-y-2">
-                  {violations.map((violation, index) => (
-                    <div
-                      key={violation.id}
-                      className={`flex items-center justify-between p-3 rounded-lg ${
-                        violation.event_type === "blur" ||
-                        violation.event_type === "hidden"
-                          ? "bg-red-50 border border-red-200"
-                          : "bg-slate-50 border border-slate-200"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-mono text-slate-500">
-                          #{index + 1}
-                        </span>
-                        <div>
-                          <p className="font-medium text-slate-900 capitalize">
-                            {violation.event_type}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {formatDateTimeShort(violation.timestamp)}
-                          </p>
+                  {violations.map((violation, index) => {
+                    const isTamper = violation.event_type.startsWith("tamper_");
+                    const tamperTypeDisplay = {
+                      tamper_blur: "Blur Listener Removed",
+                      tamper_visibility: "Visibility Listener Removed",
+                      tamper_console: "Console Tampering",
+                    };
+                    return (
+                      <div
+                        key={violation.id}
+                        className={`flex items-center justify-between p-3 rounded-lg ${
+                          isTamper
+                            ? "bg-red-600 border-2 border-red-700"
+                            : violation.event_type === "blur" ||
+                                violation.event_type === "hidden"
+                              ? "bg-red-50 border border-red-200"
+                              : "bg-slate-50 border border-slate-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`text-sm font-mono ${isTamper ? "text-white" : "text-slate-500"}`}
+                          >
+                            #{index + 1}
+                          </span>
+                          <div>
+                            <p
+                              className={`font-medium capitalize ${isTamper ? "text-white font-bold" : "text-slate-900"}`}
+                            >
+                              {isTamper
+                                ? "🚨 TAMPER ATTEMPT"
+                                : violation.event_type}
+                            </p>
+                            <p
+                              className={`text-xs ${isTamper ? "text-red-100" : "text-slate-500"}`}
+                            >
+                              {isTamper &&
+                                `${tamperTypeDisplay[violation.event_type] || "Unknown"} - `}
+                              {formatDateTimeShort(violation.timestamp)}
+                            </p>
+                          </div>
                         </div>
+                        {(violation.event_type === "blur" ||
+                          violation.event_type === "hidden") && (
+                          <PiWarningDuotone
+                            size={20}
+                            className="text-red-500"
+                          />
+                        )}
                       </div>
-                      {(violation.event_type === "blur" ||
-                        violation.event_type === "hidden") && (
-                        <PiWarningDuotone size={20} className="text-red-500" />
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>

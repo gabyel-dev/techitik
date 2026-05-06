@@ -75,7 +75,7 @@ export default function StudentHeader() {
             className="flex items-center gap-2 sm:gap-3 cursor-pointer group"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
-            <div className="hidden sm:flex flex-col items-end">
+            <div className="hidden md:flex flex-col items-end">
               <p className="username text-sm font-semibold text-slate-900 leading-none group-hover:text-emerald-600 transition-colors">
                 {user?.full_name}
               </p>

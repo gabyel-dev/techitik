@@ -24,8 +24,6 @@ export const RoomProvider = ({ children, roomId }) => {
       setRoom(roomRes.data);
       setQuizzes(quizzesRes.data || []);
       setRankings(rankingsRes.data || []);
-    } catch (err) {
-      console.error(err);
     } finally {
       if (isInitial) setLoading(false);
     }

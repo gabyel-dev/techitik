@@ -67,11 +67,11 @@ export const GetStudentRoomLists = ({ rooms, loading, onRefetch }) => {
                         {room?.name?.charAt(0).toUpperCase()}
                       </h1>
                     </span>
-                    <span className="flex flex-col flex-1 min-w-0">
-                      <h3 className="text-sm  font-medium text-[var(--text-green)] truncate group-hover:text-emerald-600 transition-colors">
+                    <span className="flex flex-col  flex-1 min-w-0">
+                      <h3 className="text-sm pt-0.5 font-medium text-[var(--text-green)] truncate group-hover:text-emerald-600 transition-colors">
                         {room?.name}
                       </h3>
-                      <span className="  text-xs    text-slate-400">
+                      <span className="text-[10px]    text-slate-400">
                         {room?.section}
                       </span>
                     </span>

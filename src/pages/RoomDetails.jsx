@@ -626,7 +626,7 @@ export default function RoomDetails() {
                                     `/dashboard/s/${user.id}/room/${roomId}/quiz/${quiz.id}/take`,
                                   );
                                 }}
-                                className="px-4 py-2 text-sm font-semibold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 active:scale-95 transition-all min-h-[40px]"
+                                className="px-3 py-1.5  text-xs font-semibold bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 active:scale-95 transition-all min-h-[40px]"
                               >
                                 View
                               </button>
@@ -637,9 +637,9 @@ export default function RoomDetails() {
                                     `/dashboard/s/${user.id}/room/${roomId}/quiz/${quiz.id}/rankings`,
                                   );
                                 }}
-                                className="px-4 py-2 text-sm font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 active:scale-95 transition-all min-h-[40px]"
+                                className="px-3 py-1.5  text-xs font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 active:scale-95 transition-all min-h-[40px]"
                               >
-                                Rankings
+                                <PiTrophyDuotone />
                               </button>
                             </div>
                           ) : quiz.is_published &&
@@ -657,7 +657,7 @@ export default function RoomDetails() {
                                 }}
                                 className="px-3 py-1.5 text-xs font-semibold bg-amber-500 text-white rounded-lg hover:bg-amber-600 active:scale-95 transition-all min-h-[36px]"
                               >
-                                Rankings
+                                <PiTrophyDuotone />
                               </button>
                             </div>
                           ) : null}
