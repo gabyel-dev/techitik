@@ -16,11 +16,13 @@ export default function RoomInvite() {
     if (authLoading) return;
 
     if (!user) {
-      // Redirect to login with return URL
-      navigate("/", {
-        replace: true,
-        state: { returnUrl: `/invite/${roomCode}` },
-      });
+      // Store the return URL in localStorage before redirecting
+      console.log('[RoomInvite] Storing returnUrl:', `/invite/${roomCode}`);
+      localStorage.setItem('returnUrl', `/invite/${roomCode}`);
+      console.log('[RoomInvite] Stored in localStorage:', localStorage.getItem('returnUrl'));
+      
+      // Redirect to login
+      navigate("/", { replace: true });
       return;
     }
 

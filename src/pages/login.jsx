@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useGoogleLogin } from "@react-oauth/google";
 import { FcGoogle } from "react-icons/fc";
 import { googleLogin } from "../api/auth";
 import SplashScreen from "../components/SplashScreen";
 import { useAuth } from "../context/authContext";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const ALLOWED_EMAIL_DOMAIN = import.meta.env.VITE_ALLOWED_EMAIL_DOMAIN;
@@ -13,8 +14,14 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const [error, setError] = useState("");
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const { setUser } = useAuth();
+
+  // Get the return URL from localStorage
+  const returnUrl = localStorage.getItem('returnUrl');
+  console.log('[Login] returnUrl from localStorage:', returnUrl);
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -52,6 +59,7 @@ export default function Login() {
         const loggedInUser = loginResult?.user;
 
         setUser(loggedInUser);
+        // PublicRoute will handle the redirect
       } catch (err) {
         setIsLoading(false);
         setError(err?.message);
@@ -131,11 +139,20 @@ export default function Login() {
             </header>
 
             <div className="mb-8 rounded-2xl md:bg-slate-50 bg-white/40 px-4 py-3.5 text-center text-xs font-medium text-slate-600 md:ring-1 md:ring-inset  md:ring-slate-200/60">
-              Please use your{" "}
-              <span className="font-semibold text-slate-900">
-                @{ALLOWED_EMAIL_DOMAIN}
-              </span>{" "}
-              account
+              {returnUrl ? (
+                <>
+                  <p className="mb-1">Please sign in to continue</p>
+                  <p className="text-emerald-600 font-semibold">You'll be redirected to your invitation</p>
+                </>
+              ) : (
+                <>
+                  Please use your{" "}
+                  <span className="font-semibold text-slate-900">
+                    @{ALLOWED_EMAIL_DOMAIN}
+                  </span>{" "}
+                  account
+                </>
+              )}
             </div>
 
             <button

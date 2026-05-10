@@ -11,6 +11,15 @@ export default function PublicRoute({ children }) {
   }
 
   if (user) {
+    // Check if there's a return URL in localStorage
+    const returnUrl = localStorage.getItem('returnUrl');
+    if (returnUrl) {
+      console.log('[PublicRoute] Found returnUrl, redirecting to:', returnUrl);
+      localStorage.removeItem('returnUrl');
+      return <Navigate to={returnUrl} replace={true} />;
+    }
+    
+    // Default dashboard redirect
     return (
       <Navigate
         to={
